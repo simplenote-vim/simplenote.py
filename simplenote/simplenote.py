@@ -77,12 +77,12 @@ class Simplenote(object):
         try:
             response = urllib2.urlopen(request)
         except IOError, e:
-            return e, False
+            return e, -1
         note = json.loads(response.read())
         # use UTF-8 encoding
         note["content"] = note["content"].encode('utf-8')
         note["tags"] = [t.encode('utf-8') for t in note["tags"]]
-        return note, True
+        return note, 0
 
     def update_note(self, note):
         """ function to update a specific note object, if the note object does not
