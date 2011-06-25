@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.getcwd())
 from simplenote import Simplenote
 
-class TestNotifyUser(unittest.TestCase):
+class TestSimplenote(unittest.TestCase):
 
     def setUp(self):
         self.user = "simplenote-test@lordofhosts.de"
@@ -36,14 +36,14 @@ class TestNotifyUser(unittest.TestCase):
 
     def test_simplenote_first_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
-        note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
+        note, status = Simplenote(self.user, self.password).get_note(res[1]["key"])
         self.assertTrue(type(note) == dict)
         self.assertEqual(0, status)
         self.assertEqual("First Note.", note["content"].split('\n')[0])
 
     def test_simplenote_second_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
-        note, status = Simplenote(self.user, self.password).get_note(res[1]["key"])
+        note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
         self.assertTrue(type(note) == dict)
         self.assertEqual(0, status)
         self.assertEqual("Second Note.", note["content"].split('\n')[0])
@@ -61,6 +61,7 @@ class TestNotifyUser(unittest.TestCase):
         # note exists
         self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).delete_note(res[0]["key"])
+        self.assertEqual({}, note)
         # deletion successful
         self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
@@ -83,7 +84,7 @@ class TestNotifyUser(unittest.TestCase):
     def test_simplenote_update_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
-        note["content"] = "Updated note."
+        note["content"] = "Updated Note."
         note, status = Simplenote(self.user, self.password).update_note(note)
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
         self.assertEqual(0, status)
