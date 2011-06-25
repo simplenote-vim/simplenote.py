@@ -93,7 +93,7 @@ class TestSimplenote(unittest.TestCase):
     def test_simplenote_is_unicode(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
-        self.assertTrue(type(note["content"]) == unicode)
+        self.assertTrue(self.is_utf8(note["content"]))
 
     def test_simplenote_update_unicode(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
@@ -101,7 +101,15 @@ class TestSimplenote(unittest.TestCase):
         note["content"] = self.unicode_note
         note, status = Simplenote(self.user, self.password).update_note(note)
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
-        self.assertTrue(type(note["content"]) == unicode)
+        self.assertTrue(self.is_utf8(note["content"]))
+
+    def is_utf8(self, s):
+        try:
+            s.decode('utf-8')
+            return True
+        except UnicodeDecodeError:
+            return False
+
 
 if __name__ == '__main__':
     unittest.main()
