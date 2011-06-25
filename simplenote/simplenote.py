@@ -124,7 +124,12 @@ class Simplenote(object):
         Returns
         The newly created note and a success status
         """
-        pass
+        if type(note) == str:
+            return self.update_note({"content": note})
+        elif (type(note) == dict) and note.has_key("content"):
+            return self.update_note(note)
+        else:
+            return "No string or valid note.", -1
 
     def get_note_list(self):
         """ function to get the note list
