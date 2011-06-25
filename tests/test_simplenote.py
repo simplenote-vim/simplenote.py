@@ -30,6 +30,13 @@ class TestSimplenote(unittest.TestCase):
         res, status = Simplenote(self.user, self.password).get_note_list()
         self.assertEqual(2, len(res))
 
+    def test_simplenote_get_list_length_25(self):
+        for i in xrange(25):
+            Simplenote(self.user, self.password).add_note("Note "+str(i))
+
+        res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(27, len(res))
+
     def test_simplenote_get_list_status(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
         self.assertEqual(0, status)
