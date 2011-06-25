@@ -39,7 +39,7 @@ class Simplenote(object):
         """
         auth_params = "email=%s&password=%s" % (user, password)
         values = base64.encodestring(auth_params)
-        request = urllib2.Request(AUTH_URL, values)
+        request = Request(AUTH_URL, values)
         try:
             res = urllib2.urlopen(request).read()
             token = urllib2.quote(res)
@@ -73,7 +73,7 @@ class Simplenote(object):
         # request note
         params = '/%s?auth=%s&email=%s' % (str(noteid), self.get_token(),
                                            self.username)
-        request = urllib2.Request(DATA_URL+params)
+        request = Request(DATA_URL+params)
         try:
             response = urllib2.urlopen(request)
         except IOError, e:
@@ -107,7 +107,7 @@ class Simplenote(object):
                                               self.get_token(), self.username)
         else:
             url = '%s?auth=%s&email=%s' % (DATA_URL, self.get_token(), self.username)
-        request = urllib2.Request(url, json.dumps(note))
+        request = Request(url, json.dumps(note))
         response = ""
         try:
             response = urllib2.urlopen(request).read()
@@ -144,7 +144,7 @@ class Simplenote(object):
                                                  NOTE_FETCH_LENGTH)
         # perform initial HTTP request
         try:
-            request = urllib2.Request(INDX_URL+params)
+            request = Request(INDX_URL+params)
             response = json.loads(urllib2.urlopen(request).read())
             notes["data"].extend(response["data"])
         except IOError:
@@ -157,7 +157,7 @@ class Simplenote(object):
 
             # perform the actual HTTP request
             try:
-                request = urllib2.Request(INDX_URL+params)
+                request = Request(INDX_URL+params)
                 response = json.loads(urllib2.urlopen(request).read())
                 notes["data"].extend(response["data"])
             except IOError:
@@ -192,7 +192,36 @@ class Simplenote(object):
         note_id -- id of the note to delete
 
         Returns:
-        true and "OK." on success, false and err msg on error
+        0 and "OK." on success, -1 and err msg on error
 
         """
-        pass
+        # notes have to be trashed before deletion
+        self.trash_note(note_id)
+
+        params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
+                                           self.username)
+        request = Request(url=DATA_URL+params, method='DELETE')
+        try:
+            res = urllib2.urlopen(request)
+        except IOError, e:
+            return e, -1
+        return {}, 0
+
+
+class Request(urllib2.Request):
+    """ monkey patched version of urllib2's Request to support HTTP DELETE
+        Taken from http://python-requests.org, thanks @kennethreitz
+    """
+
+    def __init__(self, url, data=None, headers={}, origin_req_host=None,
+                unverifiable=False, method=None):
+        urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
+        self.method = method
+
+    def get_method(self):
+        if self.method:
+            return self.method
+
+        return urllib2.Request.get_method(self)
+
+
