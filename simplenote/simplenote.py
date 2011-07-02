@@ -19,6 +19,7 @@ INDX_URL = 'https://simple-note.appspot.com/api2/index?'
 NOTE_FETCH_LENGTH = 20
 
 class Simplenote(object):
+    """ Class for interacting with the simplenote web service """
 
     def __init__(self, username, password):
         """ object constructor """
@@ -27,14 +28,14 @@ class Simplenote(object):
         self.token = None
 
     def authenticate(self, user, password):
-        """ function to get simplenote auth token
+        """ Method to get simplenote auth token
 
         Arguments:
-        user     -- simplenote email address
-        password -- simplenote password
+            - user (string):     simplenote email address
+            - password (string): simplenote password
 
         Returns:
-        Simplenote API token
+            Simplenote API token as string
 
         """
         auth_params = "email=%s&password=%s" % (user, password)
@@ -48,11 +49,13 @@ class Simplenote(object):
         return token
 
     def get_token(self):
-        """ function to retrieve an auth token. It returns the cached global
-        token or retrieves a new one if there isn't one
+        """ Method to retrieve an auth token.
 
-        Returns
-        the simplenote API token
+        The cached global token is looked up and returned if it exists. If it
+        is `None` a new one is requested and returned.
+
+        Returns:
+            Simplenote API token as string
 
         """
         if self.token == None:
@@ -61,13 +64,16 @@ class Simplenote(object):
 
 
     def get_note(self, noteid):
-        """ function to get a specific note
+        """ method to get a specific note
 
-        Arguments
-        noteid -- ID of the note to get
+        Arguments:
+            - noteid (string): ID of the note to get
 
-        Returns
-        the desired note
+        Returns:
+            A tuple `(note, status)`
+
+            - note (dict): note object
+            - status (int): 0 on sucesss and -1 otherwise
 
         """
         # request note
@@ -89,11 +95,13 @@ class Simplenote(object):
         have a "key" field, a new note is created
 
         Arguments
-        note  -- note object to update
+            - note (dict): note object to update
 
-        Returns
-        True and the JSON parsed response on success,
-        False with error message otherwise
+        Returns:
+            A tuple `(note, status)`
+
+            - note (dict): note object
+            - status (int): 0 on sucesss and -1 otherwise
 
         """
         # use UTF-8 encoding
@@ -112,17 +120,26 @@ class Simplenote(object):
         try:
             response = urllib2.urlopen(request).read()
         except IOError, e:
-            return e, False
-        return json.loads(response), True
+            return e, -1
+        return json.loads(response), 0
 
     def add_note(self, note):
         """wrapper function to add a note
 
-        Arguments
-        note -- the note to add
+        The function can be passed the note as a dict with the `content`
+        property set, which is then directly send to the web service for
+        creation. Alternatively, only the body as string can also be passed. In
+        this case the parameter is used as `content` for the new note.
 
-        Returns
-        The newly created note and a success status
+        Arguments:
+            - note (dict or string): the note to add
+
+        Returns:
+            A tuple `(note, status)`
+
+            - note (dict): the newly created note
+            - status (int): 0 on sucesss and -1 otherwise
+
         """
         if type(note) == str:
             return self.update_note({"content": note})
@@ -135,7 +152,8 @@ class Simplenote(object):
         """ function to get the note list
 
         Returns:
-        list of note titles and success status
+            An array of note objects with all properties set except
+            `content`.
 
         """
         # initialize data
@@ -174,13 +192,16 @@ class Simplenote(object):
         return ret, status
 
     def trash_note(self, note_id):
-        """ function to move a note to the trash
+        """ method to move a note to the trash
 
-        Arguments
-        note_id -- id of the note to trash
+        Arguments:
+            - note_id (string): key of the note to trash
 
-        Returns
-        list of note titles and success status
+        Returns:
+            A tuple `(note, status)`
+
+            - note (dict): the newly created note or an error message
+            - status (int): 0 on sucesss and -1 otherwise
 
         """
         # get note
@@ -191,13 +212,16 @@ class Simplenote(object):
         return self.update_note(note)
 
     def delete_note(self, note_id):
-        """ function to permanently delete a note
+        """ method to permanently delete a note
 
         Arguments:
-        note_id -- id of the note to delete
+            - note_id (string): key of the note to trash
 
         Returns:
-        0 and "OK." on success, -1 and err msg on error
+            A tuple `(note, status)`
+
+            - note (dict): an empty dict or an error message
+            - status (int): 0 on sucesss and -1 otherwise
 
         """
         # notes have to be trashed before deletion
@@ -207,7 +231,7 @@ class Simplenote(object):
                                            self.username)
         request = Request(url=DATA_URL+params, method='DELETE')
         try:
-            res = urllib2.urlopen(request)
+            urllib2.urlopen(request)
         except IOError, e:
             return e, -1
         return {}, 0
