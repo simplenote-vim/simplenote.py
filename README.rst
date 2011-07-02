@@ -21,7 +21,22 @@ Usage
 ======
 simplenote.py can be imported into any python module::
 
-    import simplenote
+    from simplenote import Simplenote
+    simplenote = Simplenote(user, password)
+
+The object then provides the following API methods::
+
+    simplenote.get_noteList()
+    simplenote.get_note(note_id)
+    simplenote.add_note(note)
+    simplenote.update_note(note)
+    simplenote.trash_note(note_id)
+    simplenote.delete_note(note_id)
+
+A ``note`` object is a dictionary with at least a ``content`` property,
+containing the note text. The ``update_note`` method needs a note object which
+also has a ``key`` property.
+
 
 Contribute
 ===========
