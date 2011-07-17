@@ -110,6 +110,12 @@ class TestSimplenote(unittest.TestCase):
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
         self.assertTrue(self.is_utf8(note["content"]))
 
+    def test_note_with_plus_signs(self):
+        note, status = Simplenote(self.user, self.password).add_note("++")
+        note, status = Simplenote(self.user, self.password).get_note(note["key"])
+        self.assertEqual(0, status)
+        self.assertEqual("++", note["content"])
+
     def is_utf8(self, s):
         try:
             s.decode('utf-8')
