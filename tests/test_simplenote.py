@@ -8,6 +8,8 @@ from simplenote import Simplenote
 class TestSimplenote(unittest.TestCase):
 
     def setUp(self):
+        res, status = Simplenote(self.user, self.password).get_note_list()
+        [Simplenote(self.user, self.password).delete_note(n["key"]) for n in res]
         self.user = "simplenote-test@lordofhosts.de"
         self.password = "foobar"
         self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
@@ -28,6 +30,7 @@ class TestSimplenote(unittest.TestCase):
 
     def test_simplenote_get_list_length(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         self.assertEqual(2, len(res))
 
     def test_simplenote_get_list_length_25(self):
@@ -35,6 +38,7 @@ class TestSimplenote(unittest.TestCase):
             Simplenote(self.user, self.password).add_note("Note "+str(i))
 
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         self.assertEqual(27, len(res))
 
     def test_simplenote_get_list_status(self):
@@ -57,17 +61,21 @@ class TestSimplenote(unittest.TestCase):
 
     def test_simplenote_trash_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).trash_note(res[0]["key"])
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
         self.assertEqual(0, status)
         self.assertEqual(1, note["deleted"])
 
     def test_simplenote_delete_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
         # note exists
         self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).delete_note(res[0]["key"])
+        self.assertEqual(0, status)
         self.assertEqual({}, note)
         # deletion successful
         self.assertEqual(0, status)
@@ -91,27 +99,36 @@ class TestSimplenote(unittest.TestCase):
     def test_simplenote_update_note(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
+        self.assertEqual(0, status)
         note["content"] = "Updated Note."
         note, status = Simplenote(self.user, self.password).update_note(note)
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
         self.assertEqual(0, status)
         self.assertEqual("Updated Note.", note["content"].split('\n')[0])
 
     def test_simplenote_is_unicode(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
+        self.assertEqual(0, status)
         self.assertTrue(self.is_utf8(note["content"]))
 
     def test_simplenote_update_unicode(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(res[0]["key"])
+        self.assertEqual(0, status)
         note["content"] = self.unicode_note
         note, status = Simplenote(self.user, self.password).update_note(note)
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
+        self.assertEqual(0, status)
         self.assertTrue(self.is_utf8(note["content"]))
 
     def test_note_with_plus_signs(self):
         note, status = Simplenote(self.user, self.password).add_note("++")
+        self.assertEqual(0, status)
         note, status = Simplenote(self.user, self.password).get_note(note["key"])
         self.assertEqual(0, status)
         self.assertEqual("++", note["content"])
