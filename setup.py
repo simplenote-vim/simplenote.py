@@ -9,6 +9,11 @@ import simplenote
 
 from distutils.core import setup
 
+requires = []
+
+if sys.version_info[:2] < (2,6):
+    requires.append('simplejson')
+
 def publish():
     """ Publish to PyPi"""
     os.system("python setup.py sdist upload")
@@ -25,11 +30,13 @@ setup(name = "simplenote",
       author_email = "d@unwiredcouch.com",
       url = "https://github.com/mrtazz/simplenote.py",
       packages = ["simplenote"],
+      install_requires=requires,
       license = "MIT",
       classifiers = (
           "Development Status :: 4 - Beta",
           "License :: OSI Approved :: MIT License",
           "Programming Language :: Python",
+          "Programming Language :: Python :: 2.5",
           "Programming Language :: Python :: 2.6",
           "Programming Language :: Python :: 2.7"
       )
