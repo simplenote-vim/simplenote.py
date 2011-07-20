@@ -233,7 +233,9 @@ class Simplenote(object):
 
         """
         # notes have to be trashed before deletion
-        self.trash_note(note_id)
+        note, status = self.trash_note(note_id)
+        if (status == -1):
+            return note, status
 
         params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
                                            self.username)
