@@ -8,10 +8,10 @@ from simplenote import Simplenote
 class TestSimplenote(unittest.TestCase):
 
     def setUp(self):
-        res, status = Simplenote(self.user, self.password).get_note_list()
-        [Simplenote(self.user, self.password).delete_note(n["key"]) for n in res]
         self.user = "simplenote-test@lordofhosts.de"
         self.password = "foobar"
+        res, status = Simplenote(self.user, self.password).get_note_list()
+        [Simplenote(self.user, self.password).delete_note(n["key"]) for n in res]
         self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
         Simplenote(self.user, self.password).add_note("First Note.")
         Simplenote(self.user, self.password).add_note("Second Note.")
