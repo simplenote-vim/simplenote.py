@@ -1,6 +1,15 @@
 History
 ========
 
+0.1.3 (2011-07-17)
+-------------------
+* fix display of '+' signs
+
+0.1.2 (2011-07-02)
+-------------------
+* improved documentation
+* add sphinx docs
+
 0.1.1 (2011-06-25)
 -------------------
 * minor changes for pypi
