@@ -214,6 +214,8 @@ class Simplenote(object):
         """
         # get note
         note, status = self.get_note(note_id)
+        if (status == -1):
+            return note, status
         # set deleted property
         note["deleted"] = 1
         # update note
