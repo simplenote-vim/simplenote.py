@@ -47,7 +47,6 @@ class TestSimplenote(unittest.TestCase):
         else:
             self.assertEqual(0, len(res))
 
-
     def test_simplenote_get_list_length_25(self):
         for i in xrange(25):
             note, status = Simplenote(self.user, self.password).add_note("Note "+str(i))
@@ -57,6 +56,24 @@ class TestSimplenote(unittest.TestCase):
         res, status = Simplenote(self.user, self.password).get_note_list()
         if status == 0:
             self.assertEqual(self.initial_note_count, len(res))
+
+    def test_simplenote_limit_list_length_10(self):
+        for i in xrange(20):
+            note, status = Simplenote(self.user, self.password).add_note("Note "+str(i))
+        res, status = Simplenote(self.user, self.password).get_note_list(10)
+        if status == 0:
+            self.assertEqual(10, len(res))
+        else:
+            self.assertEqual(0, len(res))
+
+    def test_simplenote_limit_list_length_21(self):
+        for i in xrange(25):
+            note, status = Simplenote(self.user, self.password).add_note("Note "+str(i))
+        res, status = Simplenote(self.user, self.password).get_note_list(21)
+        if status == 0:
+            self.assertEqual(21, len(res))
+        else:
+            self.assertEqual(0, len(res))
 
     def test_simplenote_first_note(self):
         if self.first_note != False:
