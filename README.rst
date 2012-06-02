@@ -37,6 +37,11 @@ A ``note`` object is a dictionary with at least a ``content`` property,
 containing the note text. The ``update_note`` method needs a note object which
 also has a ``key`` property.
 
+Meta
+======
+* `Bugs <https://github.com/mrtazz/simplenote.py/issues>`_
+* `Continuous Integration <http://travis-ci.org/#!/mrtazz/simplenote.py>`_
+* `Docs <http://readthedocs.org/docs/simplenotepy/en/latest/api.html>`_
 
 Contribute
 ===========

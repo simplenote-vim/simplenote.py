@@ -11,8 +11,16 @@
 
 import urllib
 import urllib2
+from urllib2 import HTTPError
 import base64
-import json
+try:
+    import json
+except ImportError:
+    try:
+        import simplejson as json
+    except ImportError:
+        # For Google AppEngine
+        from django.utils import simplejson as json
 
 AUTH_URL = 'https://simple-note.appspot.com/api/login'
 DATA_URL = 'https://simple-note.appspot.com/api2/data'
@@ -83,6 +91,8 @@ class Simplenote(object):
         request = Request(DATA_URL+params)
         try:
             response = urllib2.urlopen(request)
+        except HTTPError, e:
+            return e, -1
         except IOError, e:
             return e, -1
         note = json.loads(response.read())
@@ -149,8 +159,15 @@ class Simplenote(object):
         else:
             return "No string or valid note.", -1
 
-    def get_note_list(self):
+    def get_note_list(self, qty=float("inf")):
         """ function to get the note list
+
+        The function can be passed an optional argument to limit the
+        size of the list returned. If omitted a list of all notes is
+        returned.
+
+        Arguments:
+            - quantity (integer number): of notes to list
 
         Returns:
             An array of note objects with all properties set except
@@ -163,8 +180,12 @@ class Simplenote(object):
         response = {}
         notes = { "data" : [] }
 
-        # get the full note index
-        params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
+        # get the note index
+        if qty < NOTE_FETCH_LENGTH:
+            params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
+                                                 qty)
+        else:
+            params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
                                                  NOTE_FETCH_LENGTH)
         # perform initial HTTP request
         try:
@@ -175,8 +196,11 @@ class Simplenote(object):
             status = -1
 
         # get additional notes if bookmark was set in response
-        while response.has_key("mark"):
-            vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
+        while response.has_key("mark") and len(notes["data"]) < qty:
+            if (qty - len(notes["data"])) < NOTE_FETCH_LENGTH:
+                vals = (self.get_token(), self.username, response["mark"], qty - len(notes["data"]))
+            else:
+                vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
             params = 'auth=%s&email=%s&mark=%s&length=%s' % vals
 
             # perform the actual HTTP request
@@ -207,6 +231,8 @@ class Simplenote(object):
         """
         # get note
         note, status = self.get_note(note_id)
+        if (status == -1):
+            return note, status
         # set deleted property
         note["deleted"] = 1
         # update note
@@ -226,7 +252,9 @@ class Simplenote(object):
 
         """
         # notes have to be trashed before deletion
-        self.trash_note(note_id)
+        note, status = self.trash_note(note_id)
+        if (status == -1):
+            return note, status
 
         params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
                                            self.username)
