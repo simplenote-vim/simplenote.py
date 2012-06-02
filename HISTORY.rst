@@ -1,6 +1,14 @@
 History
 ========
 
+0.2.0 (2012-06-02)
+-------------------
+* Add optional argument for quantity to get_note_list()
+* catch HTTPError when fetching notes
+* immediately return if note could not be fetched
+* trash_note has to succeed for deleting
+* add json import fallbacks
+
 0.1.3 (2011-07-17)
 -------------------
 * fix display of '+' signs
