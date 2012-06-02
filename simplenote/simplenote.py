@@ -11,6 +11,7 @@
 
 import urllib
 import urllib2
+from urllib2 import HTTPError
 import base64
 try:
     import json
@@ -90,6 +91,8 @@ class Simplenote(object):
         request = Request(DATA_URL+params)
         try:
             response = urllib2.urlopen(request)
+        except HTTPError, e:
+            return e, -1
         except IOError, e:
             return e, -1
         note = json.loads(response.read())
