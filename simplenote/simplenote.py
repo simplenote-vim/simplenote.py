@@ -170,8 +170,11 @@ class Simplenote(object):
             - quantity (integer number): of notes to list
 
         Returns:
-            An array of note objects with all properties set except
+            A tuple `(notes, status)`
+
+            - notes (list): A list of note objects with all properties set except
             `content`.
+            - status (int): 0 on sucesss and -1 otherwise
 
         """
         # initialize data
