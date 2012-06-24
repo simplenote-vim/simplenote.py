@@ -13,6 +13,13 @@ class Instrumentation(object):
         array of timings for a metric and Gauges work analogously.
     """
 
+    #: global ID for counters
+    COUNTER = 1
+    #: global ID for gauges
+    GAUGE = 2
+    #: global ID for timers
+    TIMER = 3
+
     def __init__(self, maxlen=100):
         """ constructor for the instrumentation object.
 
@@ -27,6 +34,28 @@ class Instrumentation(object):
         self.counters = {}
         self.timers = {}
         self.gauges = {}
+
+    def add_metric(self, metric, value, the_type):
+        """ general dispatcher method for all supported metrics
+
+        Arguments:
+            metric (string): name of the metric to update
+            value  (number): value to update the metric with
+            the_type (int) : one of self.COUNTER, self.GAUGE, self.TIMER
+
+        Returns:
+            nothing
+        """
+        methods = {
+                self.COUNTER: self.count,
+                self.GAUGE  : self.gauge,
+                self.TIMER  : self.timing
+                }
+        try:
+            methods[the_type](metric, value)
+        except KeyError:
+            raise UnknownMetricType('No metric type corresponding to %i' %
+                    the_type)
 
     def count(self, metric, value=1):
         """ increment or decrement a counter
@@ -81,5 +110,7 @@ class Instrumentation(object):
         self.timers[metric]["upper"] = max(self.timers[metric]["values"])
         self.timers[metric]["lower"] = min(self.timers[metric]["values"])
 
+class UnknownMetricType(Exception):
+    pass
 
 

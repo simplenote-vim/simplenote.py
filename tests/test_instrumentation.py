@@ -3,7 +3,7 @@ import unittest
 import os
 import sys
 sys.path.append(os.getcwd())
-from simplenote.instrumentation import Instrumentation
+from simplenote.instrumentation import Instrumentation, UnknownMetricType
 
 class TestSimplenote(unittest.TestCase):
 
@@ -22,6 +22,10 @@ class TestSimplenote(unittest.TestCase):
         self.i.count("foobar", 3)
         self.assertEqual(8, self.i.counters["foobar"])
 
+    def test_counters_from_dispatch(self):
+        self.i.add_metric("foobar", 5, self.i.COUNTER)
+        self.assertEqual(5, self.i.counters["foobar"])
+
     def test_gauge(self):
         self.i.gauge("foobar", 3)
         self.assertEqual(5, len(self.i.gauges["foobar"]))
@@ -33,6 +37,11 @@ class TestSimplenote(unittest.TestCase):
         self.assertEqual(5, len(self.i.gauges["foobar"]))
         self.assertEqual(3, self.i.gauges["foobar"][-1])
         self.assertEqual(4, self.i.gauges["foobar"][-2])
+
+    def test_gauge_from_dispatch(self):
+        self.i.add_metric("foobar", 3, self.i.GAUGE)
+        self.assertEqual(5, len(self.i.gauges["foobar"]))
+        self.assertEqual(3, self.i.gauges["foobar"][-1])
 
     def test_timing(self):
         self.i.timing("foobar", 3)
@@ -51,6 +60,17 @@ class TestSimplenote(unittest.TestCase):
         self.assertEqual(0, self.i.timers["foobar"]["lower"])
         self.assertAlmostEqual(1.2, self.i.timers["foobar"]["mean"], 1)
 
+    def test_timing_from_dispatch(self):
+        self.i.add_metric("foobar", 3, self.i.TIMER)
+        self.assertEqual(5, len(self.i.timers["foobar"]["values"]))
+        self.assertEqual(3, self.i.timers["foobar"]["values"][-1])
+        self.assertEqual(3, self.i.timers["foobar"]["upper"])
+        self.assertEqual(0, self.i.timers["foobar"]["lower"])
+        self.assertAlmostEqual(0.6, self.i.timers["foobar"]["mean"], 1)
+
+    def test_unknown_dispatch_method(self):
+        with self.assertRaises(UnknownMetricType):
+            self.i.add_metric("foobar", 1, 5)
 
 if __name__ == '__main__':
     unittest.main()
