@@ -3,7 +3,7 @@ import unittest
 import os
 import sys
 sys.path.append(os.getcwd())
-from simplenote import Simplenote
+from simplenote import Simplenote, SimplenoteLoginFailed
 
 class TestSimplenote(unittest.TestCase):
 
@@ -37,8 +37,8 @@ class TestSimplenote(unittest.TestCase):
         self.assertNotEqual(None, token)
 
     def test_simplenote_failed_auth(self):
-        token = Simplenote(self.user, "").get_token()
-        self.assertEqual(None, token)
+        s = Simplenote(self.user, "")
+        self.assertRaises(SimplenoteLoginFailed, s.get_token)
 
     def test_simplenote_get_list_length(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
@@ -56,7 +56,6 @@ class TestSimplenote(unittest.TestCase):
         res, status = Simplenote(self.user, self.password).get_note_list()
         if status == 0:
             self.assertEqual(self.initial_note_count, len(res))
-
     def test_simplenote_limit_list_length_10(self):
         for i in xrange(20):
             note, status = Simplenote(self.user, self.password).add_note("Note "+str(i))
