@@ -27,6 +27,10 @@ DATA_URL = 'https://simple-note.appspot.com/api2/data'
 INDX_URL = 'https://simple-note.appspot.com/api2/index?'
 NOTE_FETCH_LENGTH = 20
 
+class SimplenoteLoginFailed(Exception):
+    pass
+
+
 class Simplenote(object):
     """ Class for interacting with the simplenote web service """
 
@@ -53,6 +57,8 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = urllib2.quote(res)
+        except HTTPError:
+            raise SimplenoteLoginFailed('Login to Simplenote API failed!')
         except IOError: # no connection exception
             token = None
         return token
