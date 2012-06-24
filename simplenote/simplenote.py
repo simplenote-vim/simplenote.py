@@ -24,7 +24,7 @@ except ImportError:
 
 # import instrumentation if available
 try:
-    import instrumentation
+    from instrumentation import Instrumentation
 except ImportError:
     pass
 
@@ -79,7 +79,7 @@ class Simplenote(object):
             return
 
         if self.metrics == None:
-            self.metrics = instrumentation.Instrumentation(self.metrics_maxlength)
+            self.metrics = Instrumentation(self.metrics_maxlength)
 
         self.metrics.add_metric(name, value, the_type)
 
@@ -100,9 +100,12 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = urllib2.quote(res)
+            self.update_metrics("successful auth", 1, Instrumentation.COUNTER)
         except HTTPError:
+            self.update_metrics("failed auth", 1, Instrumentation.COUNTER)
             raise SimplenoteLoginFailed('Login to Simplenote API failed!')
         except IOError: # no connection exception
+            self.update_metrics("failed auth", 1, Instrumentation.COUNTER)
             token = None
         return token
 
@@ -118,6 +121,7 @@ class Simplenote(object):
         """
         if self.token == None:
             self.token = self.authenticate(self.username, self.password)
+            self.update_metrics("update auth token", 1, Instrumentation.COUNTER)
         return self.token
 
 
@@ -141,8 +145,10 @@ class Simplenote(object):
         try:
             response = urllib2.urlopen(request)
         except HTTPError, e:
+            self.update_metrics("get_note HTTPError", 1, Instrumentation.COUNTER)
             return e, -1
         except IOError, e:
+            self.update_metrics("get_note IOError", 1, Instrumentation.COUNTER)
             return e, -1
         note = json.loads(response.read())
         # use UTF-8 encoding
@@ -180,6 +186,7 @@ class Simplenote(object):
         try:
             response = urllib2.urlopen(request).read()
         except IOError, e:
+            self.update_metrics("update_note IOError", 1, Instrumentation.COUNTER)
             return e, -1
         return json.loads(response), 0
 
@@ -245,6 +252,7 @@ class Simplenote(object):
             response = json.loads(urllib2.urlopen(request).read())
             notes["data"].extend(response["data"])
         except IOError:
+            self.update_metrics("get_note_list IOError", 1, Instrumentation.COUNTER)
             status = -1
 
         # get additional notes if bookmark was set in response
@@ -261,6 +269,7 @@ class Simplenote(object):
                 response = json.loads(urllib2.urlopen(request).read())
                 notes["data"].extend(response["data"])
             except IOError:
+                self.update_metrics("get_note_list IOError", 1, Instrumentation.COUNTER)
                 status = -1
 
         # parse data fields in response
@@ -314,6 +323,7 @@ class Simplenote(object):
         try:
             urllib2.urlopen(request)
         except IOError, e:
+            self.update_metrics("delete_note IOError", 1, Instrumentation.COUNTER)
             return e, -1
         return {}, 0
 
