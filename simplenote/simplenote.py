@@ -22,6 +22,12 @@ except ImportError:
         # For Google AppEngine
         from django.utils import simplejson as json
 
+# import instrumentation if available
+try:
+    import instrumentation
+except ImportError:
+    pass
+
 AUTH_URL = 'https://simple-note.appspot.com/api/login'
 DATA_URL = 'https://simple-note.appspot.com/api2/data'
 INDX_URL = 'https://simple-note.appspot.com/api2/index?'
@@ -34,11 +40,48 @@ class SimplenoteLoginFailed(Exception):
 class Simplenote(object):
     """ Class for interacting with the simplenote web service """
 
-    def __init__(self, username, password):
-        """ object constructor """
+    def __init__(self, username, password, collect_metrics=False,
+                 metrics_maxlength=100):
+        """ object constructor
+
+        Arguments:
+            - username (string): Simplenote username
+            - password (string): Simplenote password
+            - collect_metrics (bool): indicate whether to collect metrics
+
+        Returns:
+            The Simplenote API object
+
+        """
         self.username = urllib2.quote(username)
         self.password = urllib2.quote(password)
         self.token = None
+        self.collect_metrics = collect_metrics
+        self.metrics_maxlength = metrics_maxlength
+        self.metrics = None
+
+    def update_metrics(self, name, value, the_type):
+        """ update metrics in the instrumentation object if there is one. This
+        is just a wrapper method to not be dependant on the existence of the
+        instrumentation object.
+
+        Arguments:
+            name (string): name of the metric to update
+            value (string): the value to update the metric with
+            the_type (string): one of TIMER, COUNTER, GAUGE
+
+        Returns:
+            nothing
+
+        """
+        # return if we don't want to collect metrics
+        if self.collect_metrics == False:
+            return
+
+        if self.metrics == None:
+            self.metrics = instrumentation.Instrumentation(self.metrics_maxlength)
+
+        self.metrics.add_metric(name, value, the_type)
 
     def authenticate(self, user, password):
         """ Method to get simplenote auth token
