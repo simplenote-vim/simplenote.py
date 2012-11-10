@@ -28,7 +28,7 @@ except ImportError:
 AUTH_URL = 'https://simple-note.appspot.com/api/login'
 DATA_URL = 'https://simple-note.appspot.com/api2/data'
 INDX_URL = 'https://simple-note.appspot.com/api2/index?'
-NOTE_FETCH_LENGTH = 20
+NOTE_FETCH_LENGTH = 100
 
 class SimplenoteLoginFailed(Exception):
     pass
