@@ -13,6 +13,9 @@ import urllib
 import urllib2
 from urllib2 import HTTPError
 import base64
+from time import mktime
+from datetime import datetime
+
 try:
     import json
 except ImportError:
@@ -25,7 +28,7 @@ except ImportError:
 AUTH_URL = 'https://simple-note.appspot.com/api/login'
 DATA_URL = 'https://simple-note.appspot.com/api2/data'
 INDX_URL = 'https://simple-note.appspot.com/api2/index?'
-NOTE_FETCH_LENGTH = 20
+NOTE_FETCH_LENGTH = 100
 
 class SimplenoteLoginFailed(Exception):
     pass
@@ -165,15 +168,16 @@ class Simplenote(object):
         else:
             return "No string or valid note.", -1
 
-    def get_note_list(self, qty=float("inf")):
+    def get_note_list(self, since=None):
         """ function to get the note list
 
         The function can be passed an optional argument to limit the
-        size of the list returned. If omitted a list of all notes is
-        returned.
+        date range of the list returned. If omitted a list of all notes
+        is returned.
 
         Arguments:
-            - quantity (integer number): of notes to list
+            - since(YYYY-MM-DD string): only return notes modified
+              since this date
 
         Returns:
             A tuple `(notes, status)`
@@ -190,12 +194,15 @@ class Simplenote(object):
         notes = { "data" : [] }
 
         # get the note index
-        if qty < NOTE_FETCH_LENGTH:
-            params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
-                                                 qty)
-        else:
-            params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
+        params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
                                                  NOTE_FETCH_LENGTH)
+        if since is not None:
+            try:
+                sinceUT = mktime(datetime.strptime(since, "%Y-%m-%d").timetuple())
+                params += '&since=%s' % sinceUT
+            except ValueError:
+                pass
+
         # perform initial HTTP request
         try:
             request = Request(INDX_URL+params)
@@ -205,12 +212,15 @@ class Simplenote(object):
             status = -1
 
         # get additional notes if bookmark was set in response
-        while response.has_key("mark") and len(notes["data"]) < qty:
-            if (qty - len(notes["data"])) < NOTE_FETCH_LENGTH:
-                vals = (self.get_token(), self.username, response["mark"], qty - len(notes["data"]))
-            else:
-                vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
+        while response.has_key("mark"):
+            vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
             params = 'auth=%s&email=%s&mark=%s&length=%s' % vals
+            if since is not None:
+                try:
+                    sinceUT = mktime(datetime.strptime(since, "%Y-%m-%d").timetuple())
+                    params += '&since=%s' % sinceUT
+                except ValueError:
+                    pass
 
             # perform the actual HTTP request
             try:

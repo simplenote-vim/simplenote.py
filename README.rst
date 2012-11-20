@@ -26,7 +26,7 @@ simplenote.py can be imported into any python module::
 
 The object then provides the following API methods::
 
-    simplenote.get_note_list()
+    simplenote.get_note_list() # Supports optional "YYYY-MM-DD" date string as argument to return only notes modified since this date
     simplenote.get_note(note_id) # note id is value of key `key` in note dict as returned by get_note_list
     content = "Note added using python client"
     simplenote.add_note(content)
