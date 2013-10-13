@@ -13,7 +13,7 @@ import urllib
 import urllib2
 from urllib2 import HTTPError
 import base64
-from time import mktime
+import time
 from datetime import datetime
 
 try:
