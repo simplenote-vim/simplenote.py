@@ -3,6 +3,9 @@ import unittest
 import os
 import sys
 sys.path.append(os.getcwd())
+#Override NOTE_FETCH_LENGTH for testing purposes
+import simplenote
+simplenote.simplenote.NOTE_FETCH_LENGTH = 5
 from simplenote import Simplenote, SimplenoteLoginFailed
 
 class TestSimplenote(unittest.TestCase):
@@ -47,15 +50,15 @@ class TestSimplenote(unittest.TestCase):
         else:
             self.assertEqual(0, len(res))
 
-    def test_simplenote_get_list_length_25(self):
-        for i in xrange(25):
-            note, status = Simplenote(self.user, self.password).add_note("Note "+str(i))
+    def test_simplenote_get_list_length_longer_than_note_fetch_length(self):
+        while self.initial_note_count <= simplenote.simplenote.NOTE_FETCH_LENGTH+1:
+            note, status = Simplenote(self.user, self.password).add_note("Note "+str(self.initial_note_count+1))
             if status == 0:
                 self.initial_note_count += 1
 
         res, status = Simplenote(self.user, self.password).get_note_list()
         if status == 0:
-            self.assertEqual(self.initial_note_count, len(res))
+            self.assertTrue(len(res) > simplenote.simplenote.NOTE_FETCH_LENGTH)
 
     def test_simplenote_first_note(self):
         if self.first_note != False:
