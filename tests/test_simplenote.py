@@ -144,6 +144,19 @@ class TestSimplenote(unittest.TestCase):
             if status == 0:
                 self.assertEqual("++", note["content"])
 
+    def test_note_get_previous_version(self):
+        note_v1, status = Simplenote(self.user, self.password).add_note("Hello")
+        if status == 0:
+            note_v2 = {}
+            note_v2['key'] = note_v1["key"]
+            note_v2["content"] = "Goodbye"
+            note_v2, status = Simplenote(self.user, self.password).update_note(note_v2)
+            if status == 0:
+                if note_v2["version"] > 1:
+                    note, status = Simplenote(self.user, self.password).get_note(note_v2["key"], note_v2["version"]-1)
+                    if status == 0:
+                        self.assertEqual("Hello", note["content"])
+
     def is_utf8(self, s):
         try:
             s.decode('utf-8')

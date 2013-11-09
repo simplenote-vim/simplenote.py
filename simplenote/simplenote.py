@@ -81,11 +81,12 @@ class Simplenote(object):
         return self.token
 
 
-    def get_note(self, noteid):
+    def get_note(self, noteid, version=None):
         """ method to get a specific note
 
         Arguments:
             - noteid (string): ID of the note to get
+            - version (int): optional version of the note to get
 
         Returns:
             A tuple `(note, status)`
@@ -95,8 +96,11 @@ class Simplenote(object):
 
         """
         # request note
-        params = '/%s?auth=%s&email=%s' % (str(noteid), self.get_token(),
-                                           self.username)
+        params_version = ""
+        if version is not None:
+            params_version = '/' + str(version)
+         
+        params = '/%s%s?auth=%s&email=%s' % (str(noteid), params_version, self.get_token(), self.username)
         request = Request(DATA_URL+params)
         try:
             response = urllib2.urlopen(request)
@@ -107,7 +111,9 @@ class Simplenote(object):
         note = json.loads(response.read())
         # use UTF-8 encoding
         note["content"] = note["content"].encode('utf-8')
-        note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        # For early versions of notes, tags not always available
+        if note.has_key("tags"):
+            note["tags"] = [t.encode('utf-8') for t in note["tags"]]
         return note, 0
 
     def update_note(self, note):
