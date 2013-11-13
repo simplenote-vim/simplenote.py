@@ -131,8 +131,9 @@ class Simplenote(object):
 
         # determine whether to create a new note or updated an existing one
         if "key" in note:
-            # set modification timestamp in milli-seconds since epoch
-            note["modifydate"] = int(round(time.time() * 1000))
+            # set modification timestamp if not set by client
+            if 'modifydate' not in note:
+                note["modifydate"] = time.time()
 
             url = '%s/%s?auth=%s&email=%s' % (DATA_URL, note["key"],
                                               self.get_token(), self.username)
