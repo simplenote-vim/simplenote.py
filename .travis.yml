@@ -9,4 +9,4 @@ python:
 script: python tests/test_simplenote.py
 branches:
   only:
-    - develop
+    - master
