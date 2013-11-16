@@ -32,8 +32,8 @@ First import the module and create an object::
 
 This object then provides the following API methods::
 
-    simplenote.get_noteList()
-    simplenote.get_note(note_id)
+    simplenote.get_note_list(since=<Optional date string in form YYYY-MM-DD>)
+    simplenote.get_note(note_id, version=<Optional integer version number of note to fetch>)
     simplenote.add_note(note)
     simplenote.update_note(note)
     simplenote.trash_note(note_id)
