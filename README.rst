@@ -26,23 +26,25 @@ simplenote.py can be imported into any python module::
 
 The object then provides the following API methods::
 
-    simplenote.get_note_list()          # Supports optional "YYYY-MM-DD" date string as argument
-                                        # to return only notes modified since this date
+    simplenote.get_note_list(since=YYYY-MM-DD, tags=[])     # Supports optional `since` parameter that takes "YYYY-MM-DD"
+                                                            # date string to return only notes modified since this date.
+                                                            # Supports optional `tags` parameter that takes a list of tags
+                                                            # to return only notes that contain at least one of these tags.
 
-    simplenote.get_note(note_id)        # note id is value of key `key` in note dict as returned 
-                                        # by get_note_list. Supports optional version integer as
-                                        # argument to return previous versions
+    simplenote.get_note(note_id)                            # note id is value of key `key` in note dict as returned 
+                                                            # by get_note_list. Supports optional version integer as
+                                                            # argument to return previous versions
 
-    simplenote.add_note(note)           # A ``note`` object is a dictionary with at least a 
-                                        # ``content`` property, containing the note text.
+    simplenote.add_note(note)                               # A ``note`` object is a dictionary with at least a 
+                                                            # ``content`` property, containing the note text.
 
-    simplenote.update_note(note)        # The ``update_note`` method needs a note object which
-                                        # also has a ``key`` property.
+    simplenote.update_note(note)                            # The ``update_note`` method needs a note object which
+                                                            # also has a ``key`` property.
     simplenote.trash_note(note_id)
-    
+
     simplenote.delete_note(note_id)
 
- 
+
 
 Meta
 ======

@@ -178,16 +178,19 @@ class Simplenote(object):
         else:
             return "No string or valid note.", -1
 
-    def get_note_list(self, since=None):
+    def get_note_list(self, since=None, tags=[]):
         """ function to get the note list
 
-        The function can be passed an optional argument to limit the
-        date range of the list returned. If omitted a list of all notes
+        The function can be passed optional arguments to limit the
+        date range of the list returned and/or limit the list to notes
+        containing a certain tag. If omitted a list of all notes
         is returned.
 
         Arguments:
-            - since(YYYY-MM-DD string): only return notes modified
+            - since=YYYY-MM-DD string: only return notes modified
               since this date
+            - tags=[] list of tags as string: return notes that have
+              at least one of these tags
 
         Returns:
             A tuple `(notes, status)`
@@ -241,9 +244,14 @@ class Simplenote(object):
                 status = -1
 
         # parse data fields in response
-        ret = notes["data"]
+        note_list = notes["data"]
 
-        return ret, status
+        # Can only filter for tags at end, once all notes have been retrieved.
+        #Below based on simplenote.vim, except we return deleted notes as well
+        if (len(tags) > 0):
+            note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
+
+        return note_list, status
 
     def trash_note(self, note_id):
         """ method to move a note to the trash

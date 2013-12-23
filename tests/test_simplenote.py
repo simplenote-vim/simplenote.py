@@ -17,15 +17,18 @@ class TestSimplenote(unittest.TestCase):
         self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
         self.unicode_note_key = False
         self.initial_note_count = 0
+        self.tag_note_count = 0
         self.first_note = False
         self.second_note = False
-        note, status = Simplenote(self.user, self.password).add_note("First Note.")
+        note, status = Simplenote(self.user, self.password).add_note({"content": "First Note.", "tags": ["tag1"]})
         if status == 0:
             self.initial_note_count += 1
+            self.tag_note_count += 1
             self.first_note = note['key']
-        note, status = Simplenote(self.user, self.password).add_note("Second Note.")
+        note, status = Simplenote(self.user, self.password).add_note({"content": "Second Note.", "tags": ["tag1", "tag2"]})
         if status == 0:
             self.initial_note_count += 1
+            self.tag_note_count += 1
             self.second_note = note['key']
         note, status = Simplenote(self.user, self.password).add_note(self.unicode_note)
         if status == 0:
@@ -59,6 +62,13 @@ class TestSimplenote(unittest.TestCase):
         res, status = Simplenote(self.user, self.password).get_note_list()
         if status == 0:
             self.assertTrue(len(res) > simplenote.simplenote.NOTE_FETCH_LENGTH)
+
+    def test_simplenote_get_list_with_tags(self):
+        res, status = Simplenote(self.user, self.password).get_note_list(tags=["tag1"])
+        if status == 0:
+            self.assertEqual(self.tag_note_count, len(res))
+        else:
+            self.assertEqual(0, len(res))
 
     def test_simplenote_first_note(self):
         if self.first_note != False:
@@ -156,6 +166,9 @@ class TestSimplenote(unittest.TestCase):
                     note, status = Simplenote(self.user, self.password).get_note(note_v2["key"], note_v2["version"]-1)
                     if status == 0:
                         self.assertEqual("Hello", note["content"])
+
+
+
 
     def is_utf8(self, s):
         try:
