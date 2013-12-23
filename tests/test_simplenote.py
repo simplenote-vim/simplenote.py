@@ -16,6 +16,7 @@ class TestSimplenote(unittest.TestCase):
         self.clear_all_notes()
         self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
         self.unicode_note_key = False
+        note, status = Simplenote(self.user, self.password).get_note_list()
         self.initial_note_count = 0
         self.tag_note_count = 0
         self.first_note = False
@@ -167,9 +168,6 @@ class TestSimplenote(unittest.TestCase):
                     if status == 0:
                         self.assertEqual("Hello", note["content"])
 
-
-
-
     def is_utf8(self, s):
         try:
             s.decode('utf-8')
@@ -179,12 +177,10 @@ class TestSimplenote(unittest.TestCase):
 
     def clear_all_notes(self):
         res, status = Simplenote(self.user, self.password).get_note_list()
-        if status == 0:
+        while (len(res) > 0) and (status == 0):
             [Simplenote(self.user, self.password).delete_note(n["key"]) for n in res]
-
-
+            res, status = Simplenote(self.user, self.password).get_note_list()
 
 if __name__ == '__main__':
     unittest.main()
-
 
