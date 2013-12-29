@@ -14,7 +14,7 @@ import urllib2
 from urllib2 import HTTPError
 import base64
 import time
-from datetime import datetime
+import datetime
 
 try:
     import json
@@ -211,7 +211,7 @@ class Simplenote(object):
                                                  NOTE_FETCH_LENGTH)
         if since is not None:
             try:
-                sinceUT = time.mktime(datetime.strptime(since, "%Y-%m-%d").timetuple())
+                sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
                 params += '&since=%s' % sinceUT
             except ValueError:
                 pass
@@ -230,7 +230,7 @@ class Simplenote(object):
             params = 'auth=%s&email=%s&mark=%s&length=%s' % vals
             if since is not None:
                 try:
-                    sinceUT = time.mktime(datetime.strptime(since, "%Y-%m-%d").timetuple())
+                    sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
                     params += '&since=%s' % sinceUT
                 except ValueError:
                     pass
