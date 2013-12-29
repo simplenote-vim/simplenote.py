@@ -1,6 +1,13 @@
 History
 ========
 
+0.3.0 (2013-12-29)
+-------------------
+* Change optional argument for get_note_list() to be "since date" instead of quanity
+* Various tweaks to tests and CI in attempt to make more robust
+* get_note_list() now supports optional tag argument
+* get_note() now supports optional version argument
+  
 0.2.0 (2012-06-02)
 -------------------
 * Add optional argument for quantity to get_note_list()
