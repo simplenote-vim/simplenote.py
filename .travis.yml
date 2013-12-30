@@ -7,10 +7,9 @@ branches:
   - master
 deploy:
   provider: pypi
-  user: atomicules
+  user: mrtazz
   password:
-    secure: QD0ICwZ/JQ7KJZe+BryMMBjQnJdCXBE8CTf85e0UrJd63kf+ogtGM6w+YVGdvrR75uJDq4IFkce9DDoJIIQ5jThCR9QTkFGt6Xx4I7WKqkbaEAkt6Sf1efEEiouJUCETkO1ILajzbi9805ucuKON1Wb4XZ2R9krFP7+h68ZcXkU=
+    secure: YGE8ORgwhVQz7cdfqhrV28qDDn3svvSVO6bAbi5wDxOf5/y6cPPKPH4/sD1T9FkqEXsCzGJxUUoUTPYZ2jotSqqTWmVz+NZ98Mh/7bBiUbOmm8bP3d+AhZF0jPL+MAA7Z3i8LMq0Lso+5K1ZrWhTJYvoxttlJfigR8W8Mey7WAw=
   on:
     tags: true
     repo: mrtazz/simplenote.py
-    branch: master
