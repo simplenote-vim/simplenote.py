@@ -1,6 +1,10 @@
 History
 ========
 
+0.3.1 (2013-12-30)
+-------------------
+* Minor change to Travis CI PyPi deply details
+
 0.3.0 (2013-12-29)
 -------------------
 * Change optional argument for get_note_list() to be "since date" instead of quanity
