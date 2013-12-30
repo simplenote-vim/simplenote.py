@@ -1,8 +1,16 @@
 language: python
 python:
-  - "2.7"
-# command to install dependencies
+- '2.7'
 script: python tests/test_simplenote.py
 branches:
   only:
-    - master
+  - master
+deploy:
+  provider: pypi
+  user: atomicules
+  password:
+    secure: QD0ICwZ/JQ7KJZe+BryMMBjQnJdCXBE8CTf85e0UrJd63kf+ogtGM6w+YVGdvrR75uJDq4IFkce9DDoJIIQ5jThCR9QTkFGt6Xx4I7WKqkbaEAkt6Sf1efEEiouJUCETkO1ILajzbi9805ucuKON1Wb4XZ2R9krFP7+h68ZcXkU=
+  on:
+    tags: true
+    repo: mrtazz/simplenote.py
+    branch: master
