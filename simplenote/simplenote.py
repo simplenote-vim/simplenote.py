@@ -148,10 +148,16 @@ class Simplenote(object):
         request = Request(url, urllib.quote(json.dumps(note)))
         response = ""
         try:
-            response = urllib2.urlopen(request).read()
+            response = urllib2.urlopen(request)
         except IOError, e:
             return e, -1
-        return json.loads(response), 0
+        note = json.loads(response.read())
+        if note.has_key("content"):
+            # use UTF-8 encoding
+            note["content"] = note["content"].encode('utf-8')
+        if note.has_key("tags"):
+            note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        return note, 0
 
     def add_note(self, note):
         """wrapper function to add a note

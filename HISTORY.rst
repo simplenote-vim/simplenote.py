@@ -1,6 +1,10 @@
 History
 ========
 
+0.3.2 (2014-04-06)
+-------------------
+* update_note uses utf-8 encoding on returned note content
+
 0.3.1 (2013-12-30)
 -------------------
 * Minor change to Travis CI PyPi deply details
