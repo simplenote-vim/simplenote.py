@@ -1,6 +1,10 @@
 History
 ========
 
+0.3.3 (2014-04-07)
+-------------------
+* Minor change to a test, setting it as expected failure.
+
 0.3.2 (2014-04-06)
 -------------------
 * update_note uses utf-8 encoding on returned note content
