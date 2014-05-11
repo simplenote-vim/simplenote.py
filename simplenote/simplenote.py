@@ -15,6 +15,10 @@ from urllib2 import HTTPError
 import base64
 import time
 import datetime
+#ISSUE11 - Option one would be to make simplenote.py a wrapper around the Simperium python library: https://simperium.com/docs/python/
+from simperium.core import Auth, Api
+
+APP_ID = "chalk-bump-f49"
 
 try:
     import json
@@ -25,10 +29,6 @@ except ImportError:
         # For Google AppEngine
         from django.utils import simplejson as json
 
-AUTH_URL = 'https://simple-note.appspot.com/api/login'
-DATA_URL = 'https://simple-note.appspot.com/api2/data'
-INDX_URL = 'https://simple-note.appspot.com/api2/index?'
-NOTE_FETCH_LENGTH = 100
 
 class SimplenoteLoginFailed(Exception):
     pass
@@ -36,49 +36,11 @@ class SimplenoteLoginFailed(Exception):
 
 class Simplenote(object):
     """ Class for interacting with the simplenote web service """
-
-    def __init__(self, username, password):
+    #ISSUE11 - According to Fred Cheng the intention is that users will obtain a token from the Simplenote website. So no username/password auth is required
+    def __init__(self, token):
         """ object constructor """
-        self.username = urllib2.quote(username)
-        self.password = urllib2.quote(password)
-        self.token = None
-
-    def authenticate(self, user, password):
-        """ Method to get simplenote auth token
-
-        Arguments:
-            - user (string):     simplenote email address
-            - password (string): simplenote password
-
-        Returns:
-            Simplenote API token as string
-
-        """
-        auth_params = "email=%s&password=%s" % (user, password)
-        values = base64.encodestring(auth_params)
-        request = Request(AUTH_URL, values)
-        try:
-            res = urllib2.urlopen(request).read()
-            token = urllib2.quote(res)
-        except HTTPError:
-            raise SimplenoteLoginFailed('Login to Simplenote API failed!')
-        except IOError: # no connection exception
-            token = None
-        return token
-
-    def get_token(self):
-        """ Method to retrieve an auth token.
-
-        The cached global token is looked up and returned if it exists. If it
-        is `None` a new one is requested and returned.
-
-        Returns:
-            Simplenote API token as string
-
-        """
-        if self.token == None:
-            self.token = self.authenticate(self.username, self.password)
-        return self.token
+        self.token = token
+        self.api = Api(APP_ID, token)
 
 
     def get_note(self, noteid, version=None):
@@ -96,19 +58,15 @@ class Simplenote(object):
 
         """
         # request note
-        params_version = ""
-        if version is not None:
-            params_version = '/' + str(version)
-         
-        params = '/%s%s?auth=%s&email=%s' % (str(noteid), params_version, self.get_token(), self.username)
-        request = Request(DATA_URL+params)
+        #ISSUE11 - Is error handling required here if at Simperium library level?
         try:
-            response = urllib2.urlopen(request)
+            note = self.api.note.get(noteid, version)
         except HTTPError, e:
             return e, -1
         except IOError, e:
             return e, -1
-        note = json.loads(response.read())
+        #ISSUE11 - Add in noteid as Simperium no longer includes it
+        note["key"] = noteid
         # use UTF-8 encoding
         note["content"] = note["content"].encode('utf-8')
         # For early versions of notes, tags not always available
@@ -135,23 +93,25 @@ class Simplenote(object):
         if "tags" in note:
             note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
 
-        # determine whether to create a new note or updated an existing one
+        # determine whether to create a new note or update an existing one
+        #ISSUE11 - But there is no key in note from Simperium so it has to be added when fetched and removed before updating.
+        #ISSUE11 - And should it continue to be referenced as "key" as per Simplenote API or switch to "id" as per Simperium API? How much compatibility should be kept?
         if "key" in note:
-            # set modification timestamp if not set by client
-            if 'modifydate' not in note:
-                note["modifydate"] = time.time()
-
-            url = '%s/%s?auth=%s&email=%s' % (DATA_URL, note["key"],
-                                              self.get_token(), self.username)
+            #ISSUE11 - Then already have a noteid we need to remove before passing to Simperium API
+            noteid = note.pop("key", None)
+            note["modificationDate"] = time.time()
+            try:
+                noteid, note = self.api.note.set(noteid, note, include_response=True)
+                #ISSUE11 - And then add back in
+                note["key"] = noteid
+                status = 0
+            except IOError, e:
+                return e, -1
         else:
-            url = '%s?auth=%s&email=%s' % (DATA_URL, self.get_token(), self.username)
-        request = Request(url, urllib.quote(json.dumps(note)))
-        response = ""
-        try:
-            response = urllib2.urlopen(request).read()
-        except IOError, e:
-            return e, -1
-        return json.loads(response), 0
+            #ISSUE11 - If creating new, assume doesn't have the required full Simperium structure and pass just content string to add_note
+            note, status = self.add_note(note["content"])
+
+        return note, status
 
     def add_note(self, note):
         """wrapper function to add a note
@@ -171,10 +131,34 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        if type(note) == str:
-            return self.update_note({"content": note})
+
+        if (type(note) == str) or (type(note) == unicode):
+            if type(note) == str:
+                # use UTF-8 encoding
+                note = unicode(note, 'utf-8')
+
+            #ISSUE11 - For Simperium the whole structure is required
+            createDate = time.time()
+            note = {
+                    "tags" : [],
+                    "systemTags" : [],
+                    "creationDate" : createDate,
+                    "modificationDate" : createDate,
+                    "deleted" : False,
+                    "shareURL" : "",
+                    "publishURL" : "",
+                    "content" : note
+                }
+            #ISSUE11 - Need to check for success here
+            noteid = self.api.note.new(note)
+            note["key"] = noteid
+            return note, 0
+        #ISSUE11 - Should really check for all required fields, not just content
         elif (type(note) == dict) and "content" in note:
-            return self.update_note(note)
+            #ISSUE11 - Need to check for success here
+            noteid = self.api.note.new(note)
+            note["key"] = noteid
+            return note, 0
         else:
             return "No string or valid note.", -1
 
@@ -200,64 +184,53 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
+        #ISSUE11 - By default the Simperium API returns just a list of keys/ids and versions. There is an option to return all data, but this will be slower as it includes note content. Need to think what to do.  
         # initialize data
         status = 0
         ret = []
         response = {}
-        notes = { "data" : [] }
-
-        # get the note index
-        params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
-                                                 NOTE_FETCH_LENGTH)
+        notes = { "index" : [] }
+        since_unix_time = None
+        
         if since is not None:
+            #ISSUE11 - With the Simperium API "since" is a mark and no longer a unix timestamp. So this will have to be removed
             try:
-                sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                params += '&since=%s' % sinceUT
+                since_unix_time = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
             except ValueError:
                 pass
 
         # perform initial HTTP request
         try:
-            request = Request(INDX_URL+params)
-            response = json.loads(urllib2.urlopen(request).read())
-            notes["data"].extend(response["data"])
+            response = self.api.note.index(since=since_unix_time)
+            notes["index"].extend(response["index"])
         except IOError:
             status = -1
 
         # get additional notes if bookmark was set in response
         while "mark" in response:
-            vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
-            params = 'auth=%s&email=%s&mark=%s&length=%s' % vals
-            if since is not None:
-                try:
-                    sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                    params += '&since=%s' % sinceUT
-                except ValueError:
-                    pass
-
+            mark_response = response["mark"]
             # perform the actual HTTP request
             try:
-                request = Request(INDX_URL+params)
-                response = json.loads(urllib2.urlopen(request).read())
-                notes["data"].extend(response["data"])
+                response= self.api.note.index(since=since_unix_time,mark=mark_response)
+                notes["index"].extend(response["index"])
             except IOError:
                 status = -1
 
         # parse data fields in response
-        note_list = notes["data"]
+        note_list = notes["index"]
 
         # Can only filter for tags at end, once all notes have been retrieved.
         #Below based on simplenote.vim, except we return deleted notes as well
-        if (len(tags) > 0):
-            note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
-
+        #ISSUE11 - In Simperium index tags are not returned by default so comment this out for now.
+        #if (len(tags) > 0):
+        #    note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
         return note_list, status
 
-    def trash_note(self, note_id):
+    def trash_note(self, noteid):
         """ method to move a note to the trash
 
         Arguments:
-            - note_id (string): key of the note to trash
+            - noteid (string): key of the note to trash
 
         Returns:
             A tuple `(note, status)`
@@ -266,20 +239,21 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        # get note
-        note, status = self.get_note(note_id)
-        if (status == -1):
-            return note, status
         # set deleted property
-        note["deleted"] = 1
-        # update note
-        return self.update_note(note)
+        #ISSUE11 - Need try, etc here to return status
+        try:
+            noteid, note = self.api.note.set(noteid, {"deleted": True, "modificationDate": time.time() }, include_response=True)
+            note["key"] = noteid
+            status = 0
+        except IOError, e:
+            return e, -1
+        return note, status
 
-    def delete_note(self, note_id):
+    def delete_note(self, noteid):
         """ method to permanently delete a note
 
         Arguments:
-            - note_id (string): key of the note to trash
+            - noteid (string): key of the note to trash
 
         Returns:
             A tuple `(note, status)`
@@ -288,35 +262,8 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        # notes have to be trashed before deletion
-        note, status = self.trash_note(note_id)
-        if (status == -1):
-            return note, status
-
-        params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
-                                           self.username)
-        request = Request(url=DATA_URL+params, method='DELETE')
         try:
-            urllib2.urlopen(request)
+            self.api.note.delete(noteid)
         except IOError, e:
             return e, -1
         return {}, 0
-
-
-class Request(urllib2.Request):
-    """ monkey patched version of urllib2's Request to support HTTP DELETE
-        Taken from http://python-requests.org, thanks @kennethreitz
-    """
-
-    def __init__(self, url, data=None, headers={}, origin_req_host=None,
-                unverifiable=False, method=None):
-        urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
-        self.method = method
-
-    def get_method(self):
-        if self.method:
-            return self.method
-
-        return urllib2.Request.get_method(self)
-
-
