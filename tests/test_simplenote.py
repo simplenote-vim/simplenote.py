@@ -15,8 +15,8 @@ class TestSimplenote(unittest.TestCase):
         try:
             self.simplenote_instance = None
             if not self.simplenote_instance:
-                self.user = "test_user4@mailinator.com"
-                self.password = "testPassword"
+                self.user = "simplenote-test@lordofhosts.de"
+                self.password = "foobar"
                 self.simplenote_instance = Simplenote(self.user, self.password)
 
             time.sleep(5) # delays for 5 seconds
