@@ -2,7 +2,6 @@
 import unittest
 import os
 import sys
-import time
 sys.path.append(os.getcwd())
 #Override NOTE_FETCH_LENGTH for testing purposes
 import simplenote
@@ -11,45 +10,34 @@ from simplenote import Simplenote, SimplenoteLoginFailed
 
 class TestSimplenote(unittest.TestCase):
 
-    def setUp(self):
-        try:
-            self.simplenote_instance = None
-            if not self.simplenote_instance:
-                self.user = "simplenote-test@lordofhosts.de"
-                self.password = "foobar"
-                self.simplenote_instance = Simplenote(self.user, self.password)
+    @classmethod
+    def setUpClass(cls):
+        cls.user = "simplenote-test@lordofhosts.de"
+        password = "foobar"
+        cls.simplenote_instance = Simplenote(cls.user, password)
 
-            time.sleep(5) # delays for 5 seconds
-            self.clear_all_notes()
-            self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
-            self.unicode_note_key = False
-            note, status = self.simplenote_instance.get_note_list()
-            self.initial_note_count = 0
-            self.tag_note_count = 0
-            self.first_note = False
-            self.second_note = False
-            note, status = self.simplenote_instance.add_note({"content": "First Note.", "tags": ["tag1"]})
-            if status == 0:
-                self.initial_note_count += 1
-                self.tag_note_count += 1
-                self.first_note = note['key']
-            else:
-                self.fail("Setup Failed - First note")
-            note, status = self.simplenote_instance.add_note({"content": "Second Note.", "tags": ["tag1", "tag2"]})
-            if status == 0:
-                self.initial_note_count += 1
-                self.tag_note_count += 1
-                self.second_note = note['key']
-            else:
-                self.fail("Setup Failed - Second note")
-            note, status = self.simplenote_instance.add_note(self.unicode_note)
-            if status == 0:
-                self.initial_note_count += 1
-                self.unicode_note_key = note['key']
-            else:
-                self.fail("Setup Failed - Unicode note")
-        except Exception as e:
-            self.fail("General setup fail")
+    def setUp(self):
+        self.clear_all_notes()
+        self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
+        self.unicode_note_key = False
+        self.initial_note_count = 0
+        self.tag_note_count = 0
+        self.first_note = False
+        self.second_note = False
+        note, status = self.simplenote_instance.add_note({"content": "First Note.", "tags": ["tag1"]})
+        if status == 0:
+            self.initial_note_count += 1
+            self.tag_note_count += 1
+            self.first_note = note['key']
+        note, status = self.simplenote_instance.add_note({"content": "Second Note.", "tags": ["tag1", "tag2"]})
+        if status == 0:
+            self.initial_note_count += 1
+            self.tag_note_count += 1
+            self.second_note = note['key']
+        note, status = self.simplenote_instance.add_note(self.unicode_note)
+        if status == 0:
+            self.initial_note_count += 1
+            self.unicode_note_key = note['key']
 
     def tearDown(self):
         self.clear_all_notes()
