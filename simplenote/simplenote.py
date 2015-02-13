@@ -8,9 +8,18 @@
     :copyright: (c) 2011 by Daniel Schauenberg
     :license: MIT, see LICENSE for more details.
 """
+import sys
+if sys.version_info > (3, 0):
+    import urllib.request as urllib2
+    import urllib.error
+    from urllib.error import HTTPError
+    import urllib.parse as urllib
+else:
+    import urllib2
+    from urllib2 import HTTPError
+    import urllib
 
-import urllib.request, urllib.parse, urllib.error
-from urllib.error import HTTPError
+
 import base64
 import time
 import datetime
@@ -54,10 +63,14 @@ class Simplenote(object):
 
         """
         auth_params = "email={0}&password={1}".format(user, password)
-        values = base64.b64encode(bytes(auth_params,'utf-8'))
-        request = urllib.request.Request(AUTH_URL, values)
         try:
-            res = urllib.request.urlopen(request).read()
+            values = base64.b64encode(bytes(auth_params,'utf-8'))
+        except TypeError:
+            values = base64.encodestring(auth_params)
+
+        request = Request(AUTH_URL, values)
+        try:
+            res = urllib2.urlopen(request).read()
             token = res
         except HTTPError:
             raise SimplenoteLoginFailed('Login to Simplenote API failed!')
@@ -77,7 +90,11 @@ class Simplenote(object):
         """
         if self.token == None:
             self.token = self.authenticate(self.username, self.password)
-        return str(self.token,'utf-8')
+        try:
+            return str(self.token,'utf-8')
+        except TypeError:
+            return self.token
+
 
 
     def get_note(self, noteid, version=None):
@@ -100,9 +117,9 @@ class Simplenote(object):
             params_version = '/' + str(version)
          
         params = '/{0}{1}?auth={2}&email={3}'.format(noteid, params_version, self.get_token(), self.username)
-        request = urllib.request.Request(DATA_URL+params)
+        request = Request(DATA_URL+params)
         try:
-            response = urllib.request.urlopen(request)
+            response = urllib2.urlopen(request)
         except HTTPError as e:
             return e, -1
         except IOError as e:
@@ -134,10 +151,10 @@ class Simplenote(object):
                                                       self.get_token(), self.username)
         else:
             url = '{0}?auth={1}&email={2}'.format(DATA_URL, self.get_token(), self.username)
-        request = urllib.request.Request(url, urllib.parse.quote(json.dumps(note)).encode('utf-8'))
+        request = Request(url, urllib.quote(json.dumps(note)).encode('utf-8'))
         response = ""
         try:
-            response = urllib.request.urlopen(request)
+            response = urllib2.urlopen(request)
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
@@ -208,8 +225,8 @@ class Simplenote(object):
                 pass
         # perform initial HTTP request
         try:
-            request = urllib.request.Request(INDX_URL+params)
-            response = json.loads(urllib.request.urlopen(request).read().decode('utf-8'))
+            request = Request(INDX_URL+params)
+            response = json.loads(urllib2.urlopen(request).read().decode('utf-8'))
             notes["data"].extend(response["data"])
         except IOError:
             status = -1
@@ -225,8 +242,8 @@ class Simplenote(object):
 
             # perform the actual HTTP request
             try:
-                request = urllib.request.Request(INDX_URL+params)
-                response = json.loads(urllib.request.urlopen(request).read().decode('utf-8'))
+                request = Request(INDX_URL+params)
+                response = json.loads(urllib2.urlopen(request).read().decode('utf-8'))
                 notes["data"].extend(response["data"])
             except IOError:
                 status = -1
@@ -283,9 +300,29 @@ class Simplenote(object):
 
         params = '/{0}?auth={1}&email={2}'.format(str(note_id), self.get_token(),
                                                   self.username)
-        request = urllib.request.Request(url=DATA_URL+params, method='DELETE')
+        request = Request(url=DATA_URL+params, method='DELETE')
         try:
-            urllib.request.urlopen(request)
+            urllib2.urlopen(request)
         except IOError as e:
             return e, -1
         return {}, 0
+
+
+class Request(urllib2.Request):
+    """ monkey patched version of urllib2's Request to support HTTP DELETE
+        Taken from http://python-requests.org, thanks @kennethreitz
+    """
+
+    if sys.version_info < (3, 0):
+        def __init__(self, url, data=None, headers={}, origin_req_host=None,
+                    unverifiable=False, method=None):
+            urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
+            self.method = method
+
+        def get_method(self):
+            if self.method:
+                return self.method
+
+            return urllib2.Request.get_method(self)
+    else:
+        pass
