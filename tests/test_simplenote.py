@@ -171,11 +171,16 @@ class TestSimplenote(unittest.TestCase):
                         self.assertEqual("Hello", note["content"])
 
     def is_utf8(self, s):
-        try:
-            s.decode('utf-8')
-            return True
-        except UnicodeDecodeError:
-            return False
+        if sys.version_info < (3, 0):
+            try:
+                s.decode('utf-8')
+                return True
+            except UnicodeDecodeError:
+                return False
+        else:
+           #Aren't they anyway? 
+           return s == self.unicode_note
+
 
     def clear_all_notes(self):
         res, status = self.simplenote_instance.get_note_list()
