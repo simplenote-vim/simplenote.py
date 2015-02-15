@@ -1,6 +1,11 @@
 History
 ========
 
+0.3.5 (2015-02-15)
+-------------------
+
+* Testing deploying to PyPi again, this time will use an annotate tag
+
 0.3.4 (2015-02-15)
 -------------------
 
