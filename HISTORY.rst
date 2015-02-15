@@ -1,6 +1,12 @@
 History
 ========
 
+0.3.4 (2015-02-15)
+-------------------
+
+* Test related changes again (using single instance)
+* Also testing deploying to PyPi via Travis
+
 0.3.3 (2014-04-07)
 -------------------
 * Minor change to a test, setting it as expected failure.
