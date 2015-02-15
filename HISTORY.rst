@@ -1,6 +1,11 @@
 History
 ========
 
+0.3.6 (2015-02-15)
+-------------------
+
+* Testing deploying to PyPi again, changes to .travis.yml
+
 0.3.5 (2015-02-15)
 -------------------
 
