@@ -1,6 +1,11 @@
 History
 ========
 
+0.3.8 (2015-02-16)
+-------------------
+
+* Fix version number of deploy, now deploying is working
+
 0.3.7 (2015-02-16)
 -------------------
 
