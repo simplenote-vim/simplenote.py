@@ -6,7 +6,7 @@ deploy:
   provider: pypi
   user: mrtazz
   password:
-    secure: YGE8ORgwhVQz7cdfqhrV28qDDn3svvSVO6bAbi5wDxOf5/y6cPPKPH4/sD1T9FkqEXsCzGJxUUoUTPYZ2jotSqqTWmVz+NZ98Mh/7bBiUbOmm8bP3d+AhZF0jPL+MAA7Z3i8LMq0Lso+5K1ZrWhTJYvoxttlJfigR8W8Mey7WAw=
+    secure: pprhp5pZhC6e1drECVnDYnnsHOzCB2otsgKR9s+87TdLum6jiAzSu0Ai9lv3Z77s3Vb3VvjUkENUNC+LA82gvCkUSTBQD7BNLGEAnbT9SqDa+d1BdK5njWiumR92t6q5UyjbO0H6qO7JDEUGakz44aUs1gGBmi/9AS93VL2qwd0=
   on:
     tags: true
     repo: mrtazz/simplenote.py
