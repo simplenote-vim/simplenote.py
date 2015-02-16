@@ -1,6 +1,11 @@
 History
 ========
 
+0.3.7 (2015-02-16)
+-------------------
+
+* Testing deploying to PyPi with a change in credentials
+
 0.3.6 (2015-02-15)
 -------------------
 
