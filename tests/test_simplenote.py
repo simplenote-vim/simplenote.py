@@ -50,13 +50,23 @@ class TestSimplenote(unittest.TestCase):
         s = Simplenote(self.user, "")
         self.assertRaises(SimplenoteLoginFailed, s.get_token)
 
+    # Comments below written for Python2 and before the fix on Issue12 for using a single instance:
+
     # When get_list_length test fails unexpectedly it's due to a failure in
     # teardown to clear all notes.  Unfortunately there is no way to guarantee
     # all notes are cleared.  This test is more likely to fail as a result due
     # to the assertEqual requirements The next test also tests get_note_list
     # functionality so it makes no sense to let the whole suite fail so set as
     # expected failure.
-    @unittest.expectedFailure
+
+    # Comments below relate to Python 3 and issue 13:
+
+    # Since moving to a single Simplenote instance this test now seems to pass consistently
+    # Also, under Python 3 using expectedFailure causes the whole suite to return FAILED 
+    # when this test returns as an unexpected success.
+    # So for now leave this mess of comments here and comment out the below so I can get 
+    # test suite to pass in Python 2 and 3.
+    #@unittest.expectedFailure
     def test_simplenote_get_list_length(self):
         res, status = self.simplenote_instance.get_note_list()
         if status == 0:
