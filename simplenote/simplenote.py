@@ -227,7 +227,7 @@ class Simplenote(object):
         # initialize data
         status = 0
         ret = []
-        response = {}
+        notes_index = {}
         notes = { "data" : [] }
 
         # get the note index
@@ -242,13 +242,14 @@ class Simplenote(object):
         # perform initial HTTP request
         try:
             request = Request(INDX_URL+params)
-            response = json.loads(urllib2.urlopen(request).read().decode('utf-8'))
-            notes["data"].extend(response["data"])
+            response = urllib2.urlopen(request)
+            notes_index = json.loads(response.read().decode('utf-8'))
+            notes["data"].extend(notes_index["data"])
         except IOError:
             status = -1
         # get additional notes if bookmark was set in response
-        while "mark" in response:
-            params = 'auth={0}&email={1}&mark={2}&length={3}'.format(self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
+        while "mark" in notes_index:
+            params = 'auth={0}&email={1}&mark={2}&length={3}'.format(self.get_token(), self.username, notes_index["mark"], NOTE_FETCH_LENGTH)
             if since is not None:
                 try:
                     sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
@@ -259,8 +260,9 @@ class Simplenote(object):
             # perform the actual HTTP request
             try:
                 request = Request(INDX_URL+params)
-                response = json.loads(urllib2.urlopen(request).read().decode('utf-8'))
-                notes["data"].extend(response["data"])
+                response = urllib2.urlopen(request) 
+                notes_index = json.loads(response.read().decode('utf-8'))
+                notes["data"].extend(notes_index["data"])
             except IOError:
                 status = -1
 
