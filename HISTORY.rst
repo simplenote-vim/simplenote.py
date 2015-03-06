@@ -1,29 +1,28 @@
 History
 ========
 
+0.4.0 (2015-03-06)
+-------------------
+* Python 2 and 3 compatibility
+
 0.3.8 (2015-02-16)
 -------------------
-
 * Fix version number of deploy, now deploying is working
 
 0.3.7 (2015-02-16)
 -------------------
-
 * Testing deploying to PyPi with a change in credentials
 
 0.3.6 (2015-02-15)
 -------------------
-
 * Testing deploying to PyPi again, changes to .travis.yml
 
 0.3.5 (2015-02-15)
 -------------------
-
 * Testing deploying to PyPi again, this time will use an annotate tag
 
 0.3.4 (2015-02-15)
 -------------------
-
 * Test related changes again (using single instance)
 * Also testing deploying to PyPi via Travis
 
