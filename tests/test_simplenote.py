@@ -50,13 +50,6 @@ class TestSimplenote(unittest.TestCase):
         s = Simplenote(self.user, "")
         self.assertRaises(SimplenoteLoginFailed, s.get_token)
 
-    # When get_list_length test fails unexpectedly it's due to a failure in
-    # teardown to clear all notes.  Unfortunately there is no way to guarantee
-    # all notes are cleared.  This test is more likely to fail as a result due
-    # to the assertEqual requirements The next test also tests get_note_list
-    # functionality so it makes no sense to let the whole suite fail so set as
-    # expected failure.
-    @unittest.expectedFailure
     def test_simplenote_get_list_length(self):
         res, status = self.simplenote_instance.get_note_list()
         if status == 0:
@@ -171,11 +164,15 @@ class TestSimplenote(unittest.TestCase):
                         self.assertEqual("Hello", note["content"])
 
     def is_utf8(self, s):
-        try:
-            s.decode('utf-8')
-            return True
-        except UnicodeDecodeError:
-            return False
+        if sys.version_info < (3, 0):
+            try:
+                s.decode('utf-8')
+                return True
+            except UnicodeDecodeError:
+                return False
+        else:
+           return s == self.unicode_note
+
 
     def clear_all_notes(self):
         res, status = self.simplenote_instance.get_note_list()

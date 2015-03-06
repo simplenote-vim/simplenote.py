@@ -8,10 +8,18 @@
     :copyright: (c) 2011 by Daniel Schauenberg
     :license: MIT, see LICENSE for more details.
 """
+import sys
+if sys.version_info > (3, 0):
+    import urllib.request as urllib2
+    import urllib.error
+    from urllib.error import HTTPError
+    import urllib.parse as urllib
+else:
+    import urllib2
+    from urllib2 import HTTPError
+    import urllib
 
-import urllib
-import urllib2
-from urllib2 import HTTPError
+
 import base64
 import time
 import datetime
@@ -39,8 +47,8 @@ class Simplenote(object):
 
     def __init__(self, username, password):
         """ object constructor """
-        self.username = urllib2.quote(username)
-        self.password = urllib2.quote(password)
+        self.username = username
+        self.password = password
         self.token = None
 
     def authenticate(self, user, password):
@@ -54,12 +62,16 @@ class Simplenote(object):
             Simplenote API token as string
 
         """
-        auth_params = "email=%s&password=%s" % (user, password)
-        values = base64.encodestring(auth_params)
+        auth_params = "email={0}&password={1}".format(user, password)
+        try:
+            values = base64.b64encode(bytes(auth_params,'utf-8'))
+        except TypeError:
+            values = base64.encodestring(auth_params)
+
         request = Request(AUTH_URL, values)
         try:
             res = urllib2.urlopen(request).read()
-            token = urllib2.quote(res)
+            token = res
         except HTTPError:
             raise SimplenoteLoginFailed('Login to Simplenote API failed!')
         except IOError: # no connection exception
@@ -78,7 +90,11 @@ class Simplenote(object):
         """
         if self.token == None:
             self.token = self.authenticate(self.username, self.password)
-        return self.token
+        try:
+            return str(self.token,'utf-8')
+        except TypeError:
+            return self.token
+
 
 
     def get_note(self, noteid, version=None):
@@ -100,20 +116,21 @@ class Simplenote(object):
         if version is not None:
             params_version = '/' + str(version)
          
-        params = '/%s%s?auth=%s&email=%s' % (str(noteid), params_version, self.get_token(), self.username)
+        params = '/{0}{1}?auth={2}&email={3}'.format(noteid, params_version, self.get_token(), self.username)
         request = Request(DATA_URL+params)
         try:
             response = urllib2.urlopen(request)
-        except HTTPError, e:
+        except HTTPError as e:
             return e, -1
-        except IOError, e:
+        except IOError as e:
             return e, -1
-        note = json.loads(response.read())
-        # use UTF-8 encoding
-        note["content"] = note["content"].encode('utf-8')
-        # For early versions of notes, tags not always available
-        if note.has_key("tags"):
-            note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        note = json.loads(response.read().decode('utf-8'))
+        if sys.version_info < (3, 0):
+            # use UTF-8 encoding
+            note["content"] = note["content"].encode('utf-8')
+            # For early versions of notes, tags not always available
+            if note.has_key("tags"):
+                note["tags"] = [t.encode('utf-8') for t in note["tags"]]
         return note, 0
 
     def update_note(self, note):
@@ -130,33 +147,33 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        # use UTF-8 encoding
-        note["content"] = unicode(note["content"], 'utf-8')
-        if "tags" in note:
-            note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
-
+        if sys.version_info < (3, 0):
+            note["content"] = unicode(note["content"], 'utf-8')
+            if "tags" in note:
+                note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
         # determine whether to create a new note or updated an existing one
         if "key" in note:
             # set modification timestamp if not set by client
             if 'modifydate' not in note:
                 note["modifydate"] = time.time()
 
-            url = '%s/%s?auth=%s&email=%s' % (DATA_URL, note["key"],
-                                              self.get_token(), self.username)
+            url = '{0}/{1}?auth={2}&email={3}'.format(DATA_URL, note["key"],
+                                                      self.get_token(), self.username)
         else:
-            url = '%s?auth=%s&email=%s' % (DATA_URL, self.get_token(), self.username)
-        request = Request(url, urllib.quote(json.dumps(note)))
+            url = '{0}?auth={1}&email={2}'.format(DATA_URL, self.get_token(), self.username)
+        request = Request(url, urllib.quote(json.dumps(note)).encode('utf-8'))
         response = ""
         try:
             response = urllib2.urlopen(request)
-        except IOError, e:
+        except IOError as e:
             return e, -1
-        note = json.loads(response.read())
-        if note.has_key("content"):
-            # use UTF-8 encoding
-            note["content"] = note["content"].encode('utf-8')
-        if note.has_key("tags"):
-            note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        note = json.loads(response.read().decode('utf-8'))
+        if sys.version_info < (3, 0):
+            if note.has_key("content"):
+                # use UTF-8 encoding
+                note["content"] = note["content"].encode('utf-8')
+            if note.has_key("tags"):
+                note["tags"] = [t.encode('utf-8') for t in note["tags"]]
         return note, 0
 
     def add_note(self, note):
@@ -177,6 +194,7 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
+
         if type(note) == str:
             return self.update_note({"content": note})
         elif (type(note) == dict) and "content" in note:
@@ -209,31 +227,29 @@ class Simplenote(object):
         # initialize data
         status = 0
         ret = []
-        response = {}
+        notes_index = {}
         notes = { "data" : [] }
 
         # get the note index
-        params = 'auth=%s&email=%s&length=%s' % (self.get_token(), self.username,
-                                                 NOTE_FETCH_LENGTH)
+        params = 'auth={0}&email={1}&length={2}'.format(self.get_token(), self.username,
+                                                        NOTE_FETCH_LENGTH)
         if since is not None:
             try:
                 sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                params += '&since=%s' % sinceUT
+                params += '&since={0}'.format(sinceUT)
             except ValueError:
                 pass
-
         # perform initial HTTP request
         try:
             request = Request(INDX_URL+params)
-            response = json.loads(urllib2.urlopen(request).read())
-            notes["data"].extend(response["data"])
+            response = urllib2.urlopen(request)
+            notes_index = json.loads(response.read().decode('utf-8'))
+            notes["data"].extend(notes_index["data"])
         except IOError:
             status = -1
-
         # get additional notes if bookmark was set in response
-        while "mark" in response:
-            vals = (self.get_token(), self.username, response["mark"], NOTE_FETCH_LENGTH)
-            params = 'auth=%s&email=%s&mark=%s&length=%s' % vals
+        while "mark" in notes_index:
+            params = 'auth={0}&email={1}&mark={2}&length={3}'.format(self.get_token(), self.username, notes_index["mark"], NOTE_FETCH_LENGTH)
             if since is not None:
                 try:
                     sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
@@ -244,8 +260,9 @@ class Simplenote(object):
             # perform the actual HTTP request
             try:
                 request = Request(INDX_URL+params)
-                response = json.loads(urllib2.urlopen(request).read())
-                notes["data"].extend(response["data"])
+                response = urllib2.urlopen(request) 
+                notes_index = json.loads(response.read().decode('utf-8'))
+                notes["data"].extend(notes_index["data"])
             except IOError:
                 status = -1
 
@@ -299,12 +316,12 @@ class Simplenote(object):
         if (status == -1):
             return note, status
 
-        params = '/%s?auth=%s&email=%s' % (str(note_id), self.get_token(),
-                                           self.username)
+        params = '/{0}?auth={1}&email={2}'.format(str(note_id), self.get_token(),
+                                                  self.username)
         request = Request(url=DATA_URL+params, method='DELETE')
         try:
             urllib2.urlopen(request)
-        except IOError, e:
+        except IOError as e:
             return e, -1
         return {}, 0
 
@@ -314,15 +331,16 @@ class Request(urllib2.Request):
         Taken from http://python-requests.org, thanks @kennethreitz
     """
 
-    def __init__(self, url, data=None, headers={}, origin_req_host=None,
-                unverifiable=False, method=None):
-        urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
-        self.method = method
+    if sys.version_info < (3, 0):
+        def __init__(self, url, data=None, headers={}, origin_req_host=None,
+                    unverifiable=False, method=None):
+            urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
+            self.method = method
 
-    def get_method(self):
-        if self.method:
-            return self.method
+        def get_method(self):
+            if self.method:
+                return self.method
 
-        return urllib2.Request.get_method(self)
-
-
+            return urllib2.Request.get_method(self)
+    else:
+        pass
