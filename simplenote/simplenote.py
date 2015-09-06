@@ -33,9 +33,9 @@ except ImportError:
         # For Google AppEngine
         from django.utils import simplejson as json
 
-AUTH_URL = 'https://simple-note.appspot.com/api/login'
-DATA_URL = 'https://simple-note.appspot.com/api2/data'
-INDX_URL = 'https://simple-note.appspot.com/api2/index?'
+AUTH_URL = 'https://app.simplenote.com/api/login'
+DATA_URL = 'https://app.simplenote.com/api2/data'
+INDX_URL = 'https://app.simplenote.com/api2/index?'
 NOTE_FETCH_LENGTH = 100
 
 class SimplenoteLoginFailed(Exception):
