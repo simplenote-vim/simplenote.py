@@ -33,11 +33,10 @@ setup(name = "simplenote",
       install_requires=requires,
       license = "MIT",
       classifiers = (
-          "Development Status :: 4 - Beta",
+          "Development Status :: 5 - Production/Stable",
           "License :: OSI Approved :: MIT License",
           "Programming Language :: Python",
-          "Programming Language :: Python :: 2.5",
-          "Programming Language :: Python :: 2.6",
-          "Programming Language :: Python :: 2.7"
+          "Programming Language :: Python :: 2",
+          "Programming Language :: Python :: 3"
       )
      )
