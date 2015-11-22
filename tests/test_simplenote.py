@@ -6,7 +6,6 @@ sys.path.append(os.getcwd())
 #Override NOTE_FETCH_LENGTH for testing purposes
 import simplenote
 simplenote.simplenote.NOTE_FETCH_LENGTH = 5
-from simplenote import Simplenote, SimplenoteLoginFailed
 
 class TestSimplenote(unittest.TestCase):
 
@@ -14,7 +13,7 @@ class TestSimplenote(unittest.TestCase):
     def setUpClass(cls):
         cls.user = "simplenote-test@lordofhosts.de"
         password = "foobar"
-        cls.simplenote_instance = Simplenote(cls.user, password)
+        cls.simplenote_instance = simplenote.Simplenote(cls.user, password)
 
     def setUp(self):
         self.clear_all_notes()
@@ -47,8 +46,8 @@ class TestSimplenote(unittest.TestCase):
         self.assertNotEqual(None, token)
 
     def test_simplenote_failed_auth(self):
-        s = Simplenote(self.user, "")
-        self.assertRaises(SimplenoteLoginFailed, s.get_token)
+        s = simplenote.Simplenote(self.user, "")
+        self.assertRaises(simplenote.SimplenoteLoginFailed, s.get_token)
 
     def test_simplenote_get_list_length(self):
         res, status = self.simplenote_instance.get_note_list()

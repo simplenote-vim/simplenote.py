@@ -21,8 +21,8 @@ Usage
 ======
 simplenote.py can be imported into any python module::
 
-    from simplenote import Simplenote
-    simplenote = Simplenote(user, password)
+    import simplenote
+    simplenote = simplenote.Simplenote(user, password)
 
 The object then provides the following API methods::
 

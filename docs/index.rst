@@ -27,8 +27,8 @@ with the service.
 
 First import the module and create an object::
 
-    from simplenote import Simplenote
-    simplenote = Simplenote(user, password)
+    import simplenote
+    simplenote = simplenote.Simplenote(user, password)
 
 This object then provides the following API methods::
 
