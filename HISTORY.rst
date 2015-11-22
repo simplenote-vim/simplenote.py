@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.0 (2015-11-22)
+-------------------
+* I think this is stable and proven enough to be version 1 by now. Can then roll into Simplenote.vim v1.
+
 0.4.0 (2015-03-06)
 -------------------
 * Python 2 and 3 compatibility
