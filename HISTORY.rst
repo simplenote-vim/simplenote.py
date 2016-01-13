@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.1 (2016-01-13)
+-------------------
+* I ended up pointing tag v1.0.0 at a re-written commit so need to retag. No changes beyond that.
+
 1.0.0 (2015-11-22)
 -------------------
 * I think this is stable and proven enough to be version 1 by now. Can then roll into Simplenote.vim v1.
