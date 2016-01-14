@@ -2,6 +2,10 @@
 simplenote.py
 ==============
 
+.. image:: https://readthedocs.org/projects/simplenotepy/badge/?version=latest
+  :target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
+  :alt: Documentation Status
+
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
@@ -31,11 +35,11 @@ The object then provides the following API methods::
                                                             # Supports optional `tags` parameter that takes a list of tags
                                                             # to return only notes that contain at least one of these tags.
 
-    simplenote.get_note(note_id)                            # note id is value of key `key` in note dict as returned 
+    simplenote.get_note(note_id)                            # note id is value of key `key` in note dict as returned
                                                             # by get_note_list. Supports optional version integer as
                                                             # argument to return previous versions
 
-    simplenote.add_note(note)                               # A ``note`` object is a dictionary with at least a 
+    simplenote.add_note(note)                               # A ``note`` object is a dictionary with at least a
                                                             # ``content`` property, containing the note text.
 
     simplenote.update_note(note)                            # The ``update_note`` method needs a note object which
