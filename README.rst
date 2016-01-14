@@ -6,6 +6,9 @@ simplenote.py
   :target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
   :alt: Documentation Status
 
+.. image:: https://travis-ci.org/mrtazz/simplenote.py.svg?branch=master
+    :target: https://travis-ci.org/mrtazz/simplenote.py
+
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
