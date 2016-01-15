@@ -9,6 +9,10 @@ simplenote.py
 .. image:: https://travis-ci.org/mrtazz/simplenote.py.svg?branch=master
     :target: https://travis-ci.org/mrtazz/simplenote.py
 
+.. image:: https://codeclimate.com/github/mrtazz/simplenote.py/badges/gpa.svg
+   :target: https://codeclimate.com/github/mrtazz/simplenote.py
+   :alt: Code Climate
+
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
