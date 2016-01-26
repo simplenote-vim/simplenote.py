@@ -13,10 +13,6 @@ simplenote.py
    :target: https://codeclimate.com/github/mrtazz/simplenote.py
    :alt: Code Climate
 
-.. image:: https://readthedocs.org/projects/simplenotepy/badge/?version=latest
-  :target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
-  :alt: Documentation Status
-
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
