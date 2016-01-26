@@ -14,8 +14,8 @@ simplenote.py
    :alt: Code Climate
 
 .. image:: https://readthedocs.org/projects/simplenotepy/badge/?version=latest
-:target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
-:alt: Documentation Status
+  :target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
+  :alt: Documentation Status
 
 Introduction
 =============
