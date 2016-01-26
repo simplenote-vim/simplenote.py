@@ -13,6 +13,10 @@ simplenote.py
    :target: https://codeclimate.com/github/mrtazz/simplenote.py
    :alt: Code Climate
 
+.. image:: https://readthedocs.org/projects/simplenotepy/badge/?version=latest
+:target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
+:alt: Documentation Status
+
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
@@ -55,11 +59,5 @@ The object then provides the following API methods::
 
     simplenote.delete_note(note_id)
 
-
-Meta
-======
-* `Bugs <https://github.com/mrtazz/simplenote.py/issues>`_
-* `Continuous Integration <http://travis-ci.org/#!/mrtazz/simplenote.py>`_
-* `Docs <http://readthedocs.org/docs/simplenotepy/en/latest/api.html>`_
 
 .. _simplenote.com: http://simplenoteapp.com
