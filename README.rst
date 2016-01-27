@@ -13,6 +13,14 @@ simplenote.py
    :target: https://codeclimate.com/github/mrtazz/simplenote.py
    :alt: Code Climate
 
+.. image:: https://img.shields.io/pypi/v/simplenote.svg
+   :target: https://pypi.python.org/pypi/simplenote
+   :alt: PyPi
+
+.. image:: https://img.shields.io/badge/license-MIT-blue.svg
+   :target: http://opensource.org/licenses/MIT
+   :alt: MIT License
+
 Introduction
 =============
 simplenote.py is a python library for the simplenote.com_ web service.
