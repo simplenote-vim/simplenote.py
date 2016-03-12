@@ -125,12 +125,7 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
-        if sys.version_info < (3, 0):
-            # use UTF-8 encoding
-            note["content"] = note["content"].encode('utf-8')
-            # For early versions of notes, tags not always available
-            if note.has_key("tags"):
-                note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        note = self.__encode(note)
         return note, 0
 
     def update_note(self, note):
@@ -147,11 +142,8 @@ class Simplenote(object):
             - status (int): 0 on sucesss and -1 otherwise
 
         """
-        if sys.version_info < (3, 0):
-            note["content"] = unicode(note["content"], 'utf-8')
-            if "tags" in note:
-                note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
-        # determine whether to create a new note or updated an existing one
+        note = self.__decode(note)
+        # determine whether to create a new note or update an existing one
         if "key" in note:
             # set modification timestamp if not set by client
             if 'modifydate' not in note:
@@ -168,12 +160,7 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
-        if sys.version_info < (3, 0):
-            if note.has_key("content"):
-                # use UTF-8 encoding
-                note["content"] = note["content"].encode('utf-8')
-            if note.has_key("tags"):
-                note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        note = self.__encode(note)
         return note, 0
 
     def add_note(self, note):
@@ -324,6 +311,43 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         return {}, 0
+
+    def __encode(self, note):
+        """ Utility method to UTF-8 encode for Python 2
+
+        Arguments:
+            A note
+
+        Returns:
+            A note
+
+        """
+        if sys.version_info < (3, 0):
+            if "content" in note:
+                # use UTF-8 encoding
+                note["content"] = note["content"].encode('utf-8')
+                # For early versions of notes, tags not always available
+            if "tags" in note:
+                note["tags"] = [t.encode('utf-8') for t in note["tags"]]
+        return note
+
+    def __decode(self, note):
+        """ Utility method to UTF-8 decode for Python 2
+
+        Arguments:
+            A note
+
+        Returns:
+            A note
+
+        """
+        if sys.version_info < (3, 0):
+            if "content" in note:
+                note["content"] = unicode(note["content"], 'utf-8')
+            if "tags" in note:
+                note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
+        return note
+
 
 
 class Request(urllib2.Request):
