@@ -50,6 +50,7 @@ class Simplenote(object):
         self.username = username
         self.password = password
         self.token = None
+        self.mark = True
 
     def authenticate(self, user, password):
         """ Method to get simplenote auth token
@@ -214,44 +215,15 @@ class Simplenote(object):
         # initialize data
         status = 0
         ret = []
-        notes_index = {}
         notes = { "data" : [] }
+        self.mark = True
 
-        # get the note index
         params = 'auth={0}&email={1}&length={2}'.format(self.get_token(), self.username,
                                                         NOTE_FETCH_LENGTH)
-        if since is not None:
-            try:
-                sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                params += '&since={0}'.format(sinceUT)
-            except ValueError:
-                pass
-        # perform initial HTTP request
-        try:
-            request = Request(INDX_URL+params)
-            response = urllib2.urlopen(request)
-            notes_index = json.loads(response.read().decode('utf-8'))
-            notes["data"].extend(notes_index["data"])
-        except IOError:
-            status = -1
-        # get additional notes if bookmark was set in response
-        while "mark" in notes_index:
-            params = 'auth={0}&email={1}&mark={2}&length={3}'.format(self.get_token(), self.username, notes_index["mark"], NOTE_FETCH_LENGTH)
-            if since is not None:
-                try:
-                    sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                    params += '&since=%s' % sinceUT
-                except ValueError:
-                    pass
 
-            # perform the actual HTTP request
-            try:
-                request = Request(INDX_URL+params)
-                response = urllib2.urlopen(request) 
-                notes_index = json.loads(response.read().decode('utf-8'))
-                notes["data"].extend(notes_index["data"])
-            except IOError:
-                status = -1
+        # get notes
+        while self.mark:
+            notes, status = self.__get_notes(notes, params, since)
 
         # parse data fields in response
         note_list = notes["data"]
@@ -313,7 +285,7 @@ class Simplenote(object):
         return {}, 0
 
     def __encode(self, note):
-        """ Utility method to UTF-8 encode for Python 2
+        """ Private method to UTF-8 encode for Python 2
 
         Arguments:
             A note
@@ -322,6 +294,7 @@ class Simplenote(object):
             A note
 
         """
+
         if sys.version_info < (3, 0):
             if "content" in note:
                 # use UTF-8 encoding
@@ -348,6 +321,40 @@ class Simplenote(object):
                 note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
         return note
 
+    def __get_notes(self, notes, params, since):
+        """ Private method to fetch a chunk of notes
+
+        Arguments:
+            - Notes
+            - URL parameters
+            - since date
+
+        Returns:
+            - Notes
+            - Status
+
+        """
+
+        notes_index = {}
+
+        if since is not None:
+            try:
+                sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
+                params += '&since={0}'.format(sinceUT)
+            except ValueError:
+                pass
+        # perform HTTP request
+        try:
+            request = Request(INDX_URL+params)
+            response = urllib2.urlopen(request)
+            notes_index = json.loads(response.read().decode('utf-8'))
+            notes["data"].extend(notes_index["data"])
+            status = 0
+        except IOError:
+            status = -1
+        if "mark" not in notes_index:
+            self.mark = False
+        return notes, status
 
 
 class Request(urllib2.Request):
