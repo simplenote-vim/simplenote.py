@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.2 (2016-03-18)
+-------------------
+* Code review improvements only. No change to functionality.
+
 1.0.1 (2016-01-13)
 -------------------
 * I ended up pointing tag v1.0.0 at a re-written commit so need to retag. No changes beyond that.
