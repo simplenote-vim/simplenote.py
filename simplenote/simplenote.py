@@ -50,7 +50,7 @@ class Simplenote(object):
         self.username = username
         self.password = password
         self.token = None
-        self.mark = True
+        self.mark = "mark"
 
     def authenticate(self, user, password):
         """ Method to get simplenote auth token
@@ -216,14 +216,21 @@ class Simplenote(object):
         status = 0
         ret = []
         notes = { "data" : [] }
-        self.mark = True
+        self.mark = "mark"
 
         params = 'auth={0}&email={1}&length={2}'.format(self.get_token(), self.username,
                                                         NOTE_FETCH_LENGTH)
 
+        try:
+            sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
+            params += '&since={0}'.format(sinceUT)
+        except (TypeError, ValueError):
+            #I.e. None or invalid date format
+            pass
+
         # get notes
         while self.mark:
-            notes, status = self.__get_notes(notes, params, since)
+            notes, status = self.__get_notes(notes, params)
 
         # parse data fields in response
         note_list = notes["data"]
@@ -321,7 +328,7 @@ class Simplenote(object):
                 note["tags"] = [unicode(t, 'utf-8') for t in note["tags"]]
         return note
 
-    def __get_notes(self, notes, params, since):
+    def __get_notes(self, notes, params):
         """ Private method to fetch a chunk of notes
 
         Arguments:
@@ -337,12 +344,8 @@ class Simplenote(object):
 
         notes_index = {}
 
-        if since is not None:
-            try:
-                sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                params += '&since={0}'.format(sinceUT)
-            except ValueError:
-                pass
+        if self.mark != "mark":
+            params += '&mark={0}'.format(self.mark)
         # perform HTTP request
         try:
             request = Request(INDX_URL+params)
@@ -352,8 +355,10 @@ class Simplenote(object):
             status = 0
         except IOError:
             status = -1
-        if "mark" not in notes_index:
-            self.mark = False
+        if "mark" in notes_index:
+            self.mark = notes_index["mark"]
+        else:
+            self.mark = ""
         return notes, status
 
 
