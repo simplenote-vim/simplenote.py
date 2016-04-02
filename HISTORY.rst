@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.3 (2016-04-03)
+-------------------
+* Bug fix for an error introduce as a result of code review improvements. 
+
 1.0.2 (2016-03-18)
 -------------------
 * Code review improvements only. No change to functionality.
