@@ -3,7 +3,7 @@ simplenote.py
 ==============
 
 .. image:: https://readthedocs.org/projects/simplenotepy/badge/?version=latest
-  :target: http://simplenotepy.readthedocs.org/en/latest/?badge=latest
+  :target: http://simplenotepy.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 
 .. image:: https://travis-ci.org/mrtazz/simplenote.py.svg?branch=master
