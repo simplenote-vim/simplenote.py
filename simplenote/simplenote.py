@@ -14,10 +14,12 @@ if sys.version_info > (3, 0):
     import urllib.error
     from urllib.error import HTTPError
     import urllib.parse as urllib
+    import html
 else:
     import urllib2
     from urllib2 import HTTPError
     import urllib
+    from HTMLParser import HTMLParser
 
 
 import base64
@@ -301,6 +303,13 @@ class Simplenote(object):
             A note
 
         """
+
+        # Fix the html coding Simplenote introduced
+        if "content" in note:
+            if sys.version_info < (3, 0):
+                note["content"] = HTMLParser().unescape(note["content"])
+            else:
+                note["content"] = html.unescape(note["content"])
 
         if sys.version_info < (3, 0):
             if "content" in note:

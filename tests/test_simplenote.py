@@ -142,6 +142,13 @@ class TestSimplenote(unittest.TestCase):
             if status == 0:
                 self.assertTrue(self.is_utf8(note["content"]))
 
+    def test_html_entity_unescape(self):
+        note, status = self.simplenote_instance.add_note("<>£&'")
+        if status == 0:
+            note, status = self.simplenote_instance.get_note(note["key"])
+            if status == 0:
+                self.assertEqual("<>£&'", note["content"])
+
     def test_note_with_plus_signs(self):
         note, status = self.simplenote_instance.add_note("++")
         if status == 0:
