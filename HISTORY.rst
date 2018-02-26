@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.4 (2018-02-26)
+-------------------
+* Unescape html entites due to api change
+
 1.0.3 (2016-04-03)
 -------------------
 * Bug fix for an error introduce as a result of code review improvements. 
