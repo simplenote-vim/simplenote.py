@@ -1,6 +1,10 @@
 History
 ========
 
+1.0.5 (2018-03-24)
+-------------------
+* Sort tags in get_note and update_note
+
 1.0.4 (2018-02-26)
 -------------------
 * Unescape html entites due to api change
