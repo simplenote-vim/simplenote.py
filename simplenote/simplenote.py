@@ -311,11 +311,16 @@ class Simplenote(object):
             else:
                 note["content"] = html.unescape(note["content"])
 
+        # Sort tags
+        # For early versions of notes, tags not always available
+        if "tags" in note:
+            note["tags"] = sorted(note["tags"])
+
         if sys.version_info < (3, 0):
             if "content" in note:
                 # use UTF-8 encoding
                 note["content"] = note["content"].encode('utf-8')
-                # For early versions of notes, tags not always available
+            # For early versions of notes, tags not always available
             if "tags" in note:
                 note["tags"] = [t.encode('utf-8') for t in note["tags"]]
         return note

@@ -119,6 +119,13 @@ class TestSimplenote(unittest.TestCase):
             if status == 0:
                 self.assertEqual("new note", note["content"])
 
+    def test_simplenote_tags_sorted(self):
+        res, status = self.simplenote_instance.add_note({"content": "A note with tags in any order.", "tags": ["cat", "dog", "ant"]})
+        if status == 0:
+            note, status = self.simplenote_instance.get_note(res["key"])
+            if status == 0:
+                self.assertEqual(["ant", "cat", "dog"], note["tags"])
+
     def test_simplenote_add_note_content(self):
         res, status = self.simplenote_instance.add_note("new note")
         if status == 0:
