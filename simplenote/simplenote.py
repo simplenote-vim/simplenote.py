@@ -256,10 +256,11 @@ class Simplenote(object):
 
             # perform the actual HTTP request
             request = Request(DATA_URL+params)
+            request.add_header(self.header, self.token)
             try:
                 response = urllib2.urlopen(request)
                 response_notes = json.loads(response.read())
-                notes["index"].extend(response["index"])
+                notes["index"].extend(response_notes["index"])
             except IOError:
                 status = -1
 
