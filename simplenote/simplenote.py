@@ -81,9 +81,9 @@ class Simplenote(object):
             return e, -1
         except IOError as e:
             return e, -1
-        note = json.loads(response.read())
+        note = json.loads(response.read().decode('utf-8'))
         note["key"] = noteid
-        note["version"] = int(response.info().getheader("X-Simperium-Version"))
+        note["version"] = int(response.info().get("X-Simperium-Version"))
         # py3: response.info()["content-type"]
         # Sort tags
         # For early versions of notes, tags not always available
@@ -128,8 +128,12 @@ class Simplenote(object):
             "shareURL" : "",
             "publishURL" : "",
         }
-        for k,v in note_dict.iteritems():
-            note.setdefault(k, v)
+        if sys.version_info < (3, 0):
+            for k,v in note_dict.iteritems():
+                note.setdefault(k, v)
+        else:
+            for k,v in note_dict.items():
+                note.setdefault(k, v)
 
         url = '%s/i/%s?response=1' % (DATA_URL, noteid)
         # TODO: Could do with being consistent here. Everywhere else is Request(DATA_URL+params)
@@ -145,7 +149,7 @@ class Simplenote(object):
         note = json.loads(response.read().decode('utf-8'))
         # Add key back in
         note["key"] = noteid
-        note["version"] = int(response.info().getheader("X-Simperium-Version"))
+        note["version"] = int(response.info().get("X-Simperium-Version"))
         return note, 0
 
     def add_note(self, note):
@@ -217,7 +221,7 @@ class Simplenote(object):
         request.add_header(self.header, self.token)
         try:
             response = urllib2.urlopen(request)
-            response_notes = json.loads(response.read())
+            response_notes = json.loads(response.read().decode('utf-8'))
             # re-write for v1 consistency
             note_objects = []
             for n in response_notes["index"]:
@@ -244,7 +248,7 @@ class Simplenote(object):
             request.add_header(self.header, self.token)
             try:
                 response = urllib2.urlopen(request)
-                response_notes = json.loads(response.read())
+                response_notes = json.loads(response.read().decode('utf-8'))
                 # re-write for v1 consistency
                 note_objects = []
                 for n in response_notes["index"]:
