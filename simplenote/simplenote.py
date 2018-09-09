@@ -261,10 +261,8 @@ class Simplenote(object):
                 status = -1
         note_list = notes["index"]
         # Can only filter for tags at end, once all notes have been retrieved.
-        # Below based on simplenote.vim, except we return deleted notes as well
-        #ISSUE11 - In Simperium index tags are not returned by default so comment this out for now.
-        #if (len(tags) > 0):
-        #    note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
+        if (len(tags) > 0):
+            note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
         return note_list, status
 
     def trash_note(self, note_id):
