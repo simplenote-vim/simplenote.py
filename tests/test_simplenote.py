@@ -11,9 +11,9 @@ class TestSimplenote(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # cls.user = "simplenote-test@lordofhosts.de"
-        token = "8f57461145724e21b64e83e32a0186ec"
-        cls.simplenote_instance = simplenote.Simplenote(token)
+        cls.user = "simplenote-test@lordofhosts.de"
+        cls.password = "foobar"
+        cls.simplenote_instance = simplenote.Simplenote(cls.user, cls.password)
 
     def setUp(self):
         self.clear_all_notes()
@@ -40,6 +40,14 @@ class TestSimplenote(unittest.TestCase):
 
     def tearDown(self):
         self.clear_all_notes()
+
+    def test_simplenote_auth(self):
+        token = self.simplenote_instance.get_token()
+        self.assertNotEqual(None, token)
+
+    def test_simplenote_failed_auth(self):
+        s = simplenote.Simplenote(self.user, "")
+        self.assertRaises(simplenote.SimplenoteLoginFailed, s.get_token)
 
     def test_simplenote_get_list_length(self):
         res, status = self.simplenote_instance.get_note_list()
