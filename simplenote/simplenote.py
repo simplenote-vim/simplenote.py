@@ -153,15 +153,12 @@ class Simplenote(object):
             # Then already have a noteid we need to remove before passing to Simperium API
             noteid = note.pop("key", None)
             # set modification timestamp if not set by client
-            if 'modifydate' not in note:
-                note["modifydate"] = time.time()
+            if 'modificationDate' not in note:
+                note["modificationDate"] = time.time()
         else:
             # Adding a new note
             noteid = uuid.uuid4().hex
 
-        # Strip out version as well?
-        if "version" in note:
-            note.pop("version", None)
         # Need to add missing dict stuff if missing, might as well do by default, not just for note objects only containing content
         createDate = time.time()
         note_dict = {
@@ -180,7 +177,14 @@ class Simplenote(object):
             for k,v in note_dict.items():
                 note.setdefault(k, v)
 
-        url = '%s/i/%s?response=1' % (DATA_URL, noteid)
+        # Set a ccid?
+        # ccid = uuid.uuid4().hex
+        if "version" in note:
+            version = note.pop("version", None)
+            url = '%s/i/%s/v/%s?response=1' % (DATA_URL, noteid, version)
+        else:
+            url = '%s/i/%s?response=1' % (DATA_URL, noteid)
+
         # TODO: Could do with being consistent here. Everywhere else is Request(DATA_URL+params)
         request = Request(url, data=json.dumps(note).encode('utf-8'))
         request.add_header(self.header, self.get_token())
