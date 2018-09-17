@@ -127,8 +127,7 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
-        note["key"] = noteid
-        note["version"] = int(response.info().get("X-Simperium-Version"))
+        note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
         # py3: response.info()["content-type"]
         # Sort tags
         # For early versions of notes, tags not always available
@@ -159,23 +158,6 @@ class Simplenote(object):
             # Adding a new note
             noteid = uuid.uuid4().hex
 
-        # Need to add missing dict stuff if missing, might as well do by default, not just for note objects only containing content
-        createDate = time.time()
-        note_dict = {
-            "tags" : [],
-            "systemTags" : [],
-            "creationDate" : createDate,
-            "modificationDate" : createDate,
-            "deleted" : False,
-            "shareURL" : "",
-            "publishURL" : "",
-        }
-        if sys.version_info < (3, 0):
-            for k,v in note_dict.iteritems():
-                note.setdefault(k, v)
-        else:
-            for k,v in note_dict.items():
-                note.setdefault(k, v)
 
         # Set a ccid?
         # ccid = uuid.uuid4().hex
@@ -186,6 +168,7 @@ class Simplenote(object):
             url = '%s/i/%s?response=1' % (DATA_URL, noteid)
 
         # TODO: Could do with being consistent here. Everywhere else is Request(DATA_URL+params)
+        note = self.__remove_simplenote_api_fields(note)
         request = Request(url, data=json.dumps(note).encode('utf-8'))
         request.add_header(self.header, self.get_token())
         request.add_header('Content-Type', 'application/json')
@@ -196,9 +179,7 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
-        # Add key back in
-        note["key"] = noteid
-        note["version"] = int(response.info().get("X-Simperium-Version"))
+        note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
         return note, 0
 
     def add_note(self, note):
@@ -256,6 +237,7 @@ class Simplenote(object):
         notes = { "index" : [] }
 
         # get the note index
+        # TODO: Using data=false is actually fine with simplenote.vim - sadly no faster though
         params = '/index?limit=%s&data=true' % (str(NOTE_FETCH_LENGTH))
         # if since is not None:
         #    #ISSUE11 - With the Simperium API "since" is a mark and no longer a unix timestamp. So this will have to be removed
@@ -272,6 +254,7 @@ class Simplenote(object):
             response = urllib2.urlopen(request)
             response_notes = json.loads(response.read().decode('utf-8'))
             # re-write for v1 consistency
+            # TODO: Use __add_simplenote_api_fields probably
             note_objects = []
             for n in response_notes["index"]:
                 note_object = n['d']
@@ -363,6 +346,55 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         return {}, 0
+
+    def __add_simplenote_api_fields(self, note, noteid, version):
+        # Compatibility with original Simplenote API v2.1.5
+        note[u'key'] = noteid
+        note[u'version'] = version
+        note[u'modifydate'] = note["modificationDate"]
+        note[u'createdate'] = note["modificationDate"]
+        note[u'systemtags'] = note["systemTags"]
+        return note
+
+    def __remove_simplenote_api_fields(self, note):
+        # These two should have already removed by this point since they are
+        # needed for updating, etc, but _just_ incase...
+        note.pop("key", None)
+        note.pop("version", None)
+        # Let's only set these ones if they exist. We don't want None so we can
+        # still set defaults afterwards
+        mappings = {
+                "modifydate": "modificationDate",
+                "createdate": "creationDate",
+                "systemtags": "systemTags"
+        }
+        if sys.version_info < (3, 0):
+            for k,v in mappings.iteritems():
+                if k in note:
+                    note[v] = note.pop(k)
+        else:
+            for k,v in mappings.items():
+                if k in note:
+                    note[v] = note.pop(k)
+        # Need to add missing dict stuff if missing, might as well do by
+        # default, not just for note objects only containing content
+        createDate = time.time()
+        note_dict = {
+            "tags" : [],
+            "systemTags" : [],
+            "creationDate" : createDate,
+            "modificationDate" : createDate,
+            "deleted" : False,
+            "shareURL" : "",
+            "publishURL" : "",
+        }
+        if sys.version_info < (3, 0):
+            for k,v in note_dict.iteritems():
+                note.setdefault(k, v)
+        else:
+            for k,v in note_dict.items():
+                note.setdefault(k, v)
+        return note
 
 class Request(urllib2.Request):
     """ monkey patched version of urllib2's Request to support HTTP DELETE
