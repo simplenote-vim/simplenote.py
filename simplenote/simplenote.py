@@ -128,7 +128,6 @@ class Simplenote(object):
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
         note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
-        # py3: response.info()["content-type"]
         # Sort tags
         # For early versions of notes, tags not always available
         if "tags" in note:
@@ -159,7 +158,7 @@ class Simplenote(object):
             noteid = uuid.uuid4().hex
 
 
-        # Set a ccid?
+        # TODO: Set a ccid?
         # ccid = uuid.uuid4().hex
         if "version" in note:
             version = note.pop("version", None)
@@ -239,13 +238,6 @@ class Simplenote(object):
         # get the note index
         # TODO: Using data=false is actually fine with simplenote.vim - sadly no faster though
         params = '/index?limit=%s&data=true' % (str(NOTE_FETCH_LENGTH))
-        # if since is not None:
-        #    #ISSUE11 - With the Simperium API "since" is a mark and no longer a unix timestamp. So this will have to be removed
-        #    try:
-        #        sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-        #        params += '&since=%s' % sinceUT
-        #    except ValueError:
-        #        pass
 
         # perform initial HTTP request
         request = Request(DATA_URL+params)
@@ -254,12 +246,9 @@ class Simplenote(object):
             response = urllib2.urlopen(request)
             response_notes = json.loads(response.read().decode('utf-8'))
             # re-write for v1 consistency
-            # TODO: Use __add_simplenote_api_fields probably
             note_objects = []
             for n in response_notes["index"]:
-                note_object = n['d']
-                note_object['version'] = n['v']
-                note_object['key'] = n['id']
+                note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                 note_objects.append(note_object)
             notes["index"].extend(note_objects)
         except IOError:
@@ -314,11 +303,16 @@ class Simplenote(object):
         note, status = self.get_note(note_id)
         if (status == -1):
             return note, status
-        # set deleted property
-        note["deleted"] = True
-        note["modificationDate"] = time.time()
-        # update note
-        return self.update_note(note)
+        # set deleted property, but only if not already trashed
+        # TODO: A 412 is ok, that's unmodified. Should handle this in update_note and
+        # then not worry about checking here
+        if not note["deleted"]:
+            note["deleted"] = True
+            note["modificationDate"] = time.time()
+            # update note
+            return self.update_note(note)
+        else:
+            return 0, note
 
     def delete_note(self, note_id):
         """ method to permanently delete a note
@@ -345,6 +339,8 @@ class Simplenote(object):
             response = urllib2.urlopen(request)
         except IOError as e:
             return e, -1
+        except HTTPError as e:
+            return e, -1
         return {}, 0
 
     def __add_simplenote_api_fields(self, note, noteid, version):
@@ -352,7 +348,7 @@ class Simplenote(object):
         note[u'key'] = noteid
         note[u'version'] = version
         note[u'modifydate'] = note["modificationDate"]
-        note[u'createdate'] = note["modificationDate"]
+        note[u'createdate'] = note["creationDate"]
         note[u'systemtags'] = note["systemTags"]
         return note
 
