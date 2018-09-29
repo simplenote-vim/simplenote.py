@@ -12,13 +12,13 @@ class TestSimplenote(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.user = "simplenote-test@lordofhosts.de"
-        password = "foobar"
-        cls.simplenote_instance = simplenote.Simplenote(cls.user, password)
+        cls.password = "foobar"
+        cls.simplenote_instance = simplenote.Simplenote(cls.user, cls.password)
 
     def setUp(self):
         self.clear_all_notes()
-        self.unicode_note = "∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫"
-        self.unicode_note_key = False
+        self.unicode_note = u'∮ E⋅da = Q,  n → ∞, ∑ f(i) = ∏ g(i),      ⎧⎡⎛┌─────┐⎞⎤⎫'
+        self.unicode_note_id = False
         self.initial_note_count = 0
         self.tag_note_count = 0
         self.first_note = False
@@ -36,7 +36,7 @@ class TestSimplenote(unittest.TestCase):
         note, status = self.simplenote_instance.add_note(self.unicode_note)
         if status == 0:
             self.initial_note_count += 1
-            self.unicode_note_key = note['key']
+            self.unicode_note_id = note['key']
 
     def tearDown(self):
         self.clear_all_notes()
@@ -124,7 +124,7 @@ class TestSimplenote(unittest.TestCase):
         if status == 0:
             note, status = self.simplenote_instance.get_note(res["key"])
             if status == 0:
-                self.assertEqual(["ant", "cat", "dog"], note["tags"])
+                self.assertEqual([u'ant', u'cat', u'dog'], note["tags"])
 
     def test_simplenote_add_note_content(self):
         res, status = self.simplenote_instance.add_note("new note")
@@ -144,8 +144,8 @@ class TestSimplenote(unittest.TestCase):
                 self.assertEqual("Updated Note.", note["content"].split('\n')[0])
 
     def test_simplenote_is_unicode(self):
-        if self.unicode_note_key != False:
-            note, status = self.simplenote_instance.get_note(self.unicode_note_key)
+        if self.unicode_note_id != False:
+            note, status = self.simplenote_instance.get_note(self.unicode_note_id)
             if status == 0:
                 self.assertTrue(self.is_utf8(note["content"]))
 
@@ -154,7 +154,7 @@ class TestSimplenote(unittest.TestCase):
         if status == 0:
             note, status = self.simplenote_instance.get_note(note["key"])
             if status == 0:
-                self.assertEqual("<>£&'", note["content"])
+                self.assertEqual(u"<>£&'", note["content"])
 
     def test_note_with_plus_signs(self):
         note, status = self.simplenote_instance.add_note("++")
