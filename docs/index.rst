@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-simplenote.py: python API wrapper for simplenoteapp.com
+simplenote.py: python API wrapper for simplenote.com
 =========================================================
 
 Contents:
@@ -21,23 +21,23 @@ Indices and tables
 
 Quickstart
 -----------
-simplenote.py is a simple wrapper around the simplenoteapp.com web service. It
+simplenote.py is a simple wrapper around the simplenote.com web service. It
 provides the Simplenote object, with a set of convenience methods to interact
 with the service.
 
 First import the module and create an object::
 
     import simplenote
-    simplenote = simplenote.Simplenote(user, password)
+    sn = simplenote.Simplenote(user, password)
 
 This object then provides the following API methods::
 
-    simplenote.get_note_list(since=<Optional date string in form YYYY-MM-DD>)
-    simplenote.get_note(note_id, version=<Optional integer version number of note to fetch>)
-    simplenote.add_note(note)
-    simplenote.update_note(note)
-    simplenote.trash_note(note_id)
-    simplenote.delete_note(note_id)
+    sn.get_note_list(tags=<Optional list of tags to filter by)
+    sn.get_note(note_id, version=<Optional integer version number of note to fetch>)
+    sn.add_note(note)
+    sn.update_note(note)
+    sn.trash_note(note_id)
+    sn.delete_note(note_id)
 
 A ``note`` object is a dictionary with at least a ``content`` property,
 containing the note text. The ``update_note`` method needs a note object which

@@ -62,11 +62,14 @@ class Simplenote(object):
 
     def authenticate(self, user, password):
         """ Method to get simplenote auth token
+
         Arguments:
             - user (string):     simplenote email address
             - password (string): simplenote password
+
         Returns:
             Simplenote API token as string
+            
         """
 
         request = Request(AUTH_URL)
@@ -86,10 +89,13 @@ class Simplenote(object):
 
     def get_token(self):
         """ Method to retrieve an auth token.
+
         The cached global token is looked up and returned if it exists. If it
         is `None` a new one is requested and returned.
+
         Returns:
             Simplenote API token as string
+
         """
         if self.token == None:
             self.token = self.authenticate(self.username, self.password)
@@ -99,7 +105,7 @@ class Simplenote(object):
             return self.token
 
     def get_note(self, noteid, version=None):
-        """ method to get a specific note
+        """ Method to get a specific note
 
         Arguments:
             - noteid (string): ID of the note to get
@@ -136,14 +142,17 @@ class Simplenote(object):
         return note, 0
 
     def update_note(self, note):
-        """ function to update a specific note object, if the note object does not
+        """ Method to update a specific note object, if the note object does not
         have a "key" field, a new note is created
+
         Arguments
             - note (dict): note object to update
+
         Returns:
             A tuple `(note, status)`
             - note (dict): note object
             - status (int): 0 on sucesss and -1 otherwise
+
         """
         # determine whether to create a new note or update an existing one
         # Also need to add/remove key field to keep simplenote.py consistency
@@ -182,9 +191,9 @@ class Simplenote(object):
         return note, 0
 
     def add_note(self, note):
-        """wrapper function to add a note
+        """ Wrapper method to add a note
 
-        The function can be passed the note as a dict with the `content`
+        The method can be passed the note as a dict with the `content`
         property set, which is then directly send to the web service for
         creation. Alternatively, only the body as string can also be passed. In
         this case the parameter is used as `content` for the new note.
@@ -208,16 +217,13 @@ class Simplenote(object):
             return "No string or valid note.", -1
 
     def get_note_list(self, since=None, tags=[]):
-        """ function to get the note list
+        """ Method to get the note list
 
-        The function can be passed optional arguments to limit the
-        date range of the list returned and/or limit the list to notes
-        containing a certain tag. If omitted a list of all notes
-        is returned.
+        The method can be passed optional arguments to limit the
+        the list to notes containing a certain tag. If omitted a list
+        of all notes is returned.
 
         Arguments:
-            - since=YYYY-MM-DD string: only return notes modified
-              since this date
             - tags=[] list of tags as string: return notes that have
               at least one of these tags
 
@@ -287,7 +293,7 @@ class Simplenote(object):
         return note_list, status
 
     def trash_note(self, note_id):
-        """ method to move a note to the trash
+        """ Method to move a note to the trash
 
         Arguments:
             - note_id (string): key of the note to trash
@@ -315,7 +321,7 @@ class Simplenote(object):
             return 0, note
 
     def delete_note(self, note_id):
-        """ method to permanently delete a note
+        """ Method to permanently delete a note
 
         Arguments:
             - note_id (string): key of the note to trash
