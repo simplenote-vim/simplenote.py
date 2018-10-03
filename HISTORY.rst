@@ -1,6 +1,14 @@
 History
 ========
 
+2.0.2 (2018-10-03)
+------------------
+
+* Actually remove the since support like I thought I had. I could have
+  re-implemented since in as per tags so it filters after pulling everything
+  else, but since (ha!) I used "since" for a faster note loading there seems
+  little point.
+
 2.0.1 (2018-10-03)
 ------------------
 
