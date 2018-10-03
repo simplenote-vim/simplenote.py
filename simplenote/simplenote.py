@@ -216,7 +216,7 @@ class Simplenote(object):
         else:
             return "No string or valid note.", -1
 
-    def get_note_list(self, since=None, tags=[]):
+    def get_note_list(self, tags=[]):
         """ Method to get the note list
 
         The method can be passed optional arguments to limit the
@@ -263,12 +263,6 @@ class Simplenote(object):
         # get additional notes if bookmark was set in response
         while "mark" in response_notes:
             params += '&mark=%s' % response_notes["mark"]
-            if since is not None:
-                try:
-                    sinceUT = time.mktime(datetime.datetime.strptime(since, "%Y-%m-%d").timetuple())
-                    params += '&since=%s' % sinceUT
-                except ValueError:
-                    pass
 
             # perform the actual HTTP request
             request = Request(DATA_URL+params)
