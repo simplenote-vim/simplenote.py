@@ -159,9 +159,6 @@ class Simplenote(object):
         if "key" in note:
             # Then already have a noteid we need to remove before passing to Simperium API
             noteid = note.pop("key", None)
-            # set modification timestamp if not set by client
-            if 'modificationDate' not in note:
-                note["modificationDate"] = time.time()
         else:
             # Adding a new note
             noteid = uuid.uuid4().hex
