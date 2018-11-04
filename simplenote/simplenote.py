@@ -58,7 +58,7 @@ class Simplenote(object):
         self.password = password
         self.header = 'X-Simperium-Token'
         self.token = None
-        self.mark = "mark"
+        self.current = ""
 
     def authenticate(self, user, password):
         """ Method to get simplenote auth token
@@ -115,7 +115,7 @@ class Simplenote(object):
             A tuple `(note, status)`
 
             - note (dict): note object
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
         # request note
@@ -151,7 +151,7 @@ class Simplenote(object):
         Returns:
             A tuple `(note, status)`
             - note (dict): note object
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
         # determine whether to create a new note or update an existing one
@@ -202,7 +202,7 @@ class Simplenote(object):
             A tuple `(note, status)`
 
             - note (dict): the newly created note
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
 
@@ -213,23 +213,30 @@ class Simplenote(object):
         else:
             return "No string or valid note.", -1
 
-    def get_note_list(self, tags=[]):
+    def get_note_list(self, data=True, since=None, tags=[]):
         """ Method to get the note list
 
-        The method can be passed optional arguments to limit the
-        the list to notes containing a certain tag. If omitted a list
-        of all notes is returned.
+        The method can be passed optional arguments to limit the list to
+        notes containing a certain tag, or only updated since a certain
+        Simperium cursor. If omitted a list of all notes is returned.
+
+        By default data objects are returned. If data is set to false only
+        keys/ids and versions are returned. An empty data object is inserted
+        for compatibility.
 
         Arguments:
             - tags=[] list of tags as string: return notes that have
               at least one of these tags
+            - since=cursor Simperium cursor as string: return only changes
+              since this cursor
+            - data=True If false only return keys/ids and versions
 
         Returns:
             A tuple `(notes, status)`
 
             - notes (list): A list of note objects with all properties set except
             `content`.
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
         # initialize data
@@ -239,8 +246,13 @@ class Simplenote(object):
         notes = { "index" : [] }
 
         # get the note index
-        # TODO: Using data=false is actually fine with simplenote.vim - sadly no faster though
-        params = '/index?limit=%s&data=true' % (str(NOTE_FETCH_LENGTH))
+        params = '/index?limit=%s' % (str(NOTE_FETCH_LENGTH))
+
+        if since is not None:
+            params += '&since=%s' % (since)
+        # Fetching data is the default
+        if data:
+            params += '&data=true'
 
         # perform initial HTTP request
         request = Request(DATA_URL+params)
@@ -251,6 +263,9 @@ class Simplenote(object):
             # re-write for v1 consistency
             note_objects = []
             for n in response_notes["index"]:
+                # If data=False then can't do this bit... or not all of it, just have id and version. Add empty data object.
+                if not data:
+                    n['d'] = {}
                 note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                 note_objects.append(note_object)
             notes["index"].extend(note_objects)
@@ -270,14 +285,16 @@ class Simplenote(object):
                 # re-write for v1 consistency
                 note_objects = []
                 for n in response_notes["index"]:
+                    if not data:
+                        n['d'] = {}
                     note_object = n['d']
-                    note_object['version'] = n['v']
-                    note_object['key'] = n['id']
+                    note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                     note_objects.append(note_object)
                 notes["index"].extend(note_objects)
             except IOError:
                 status = -1
         note_list = notes["index"]
+        self.current = response_notes["current"]
         # Can only filter for tags at end, once all notes have been retrieved.
         if (len(tags) > 0):
             note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
@@ -293,7 +310,7 @@ class Simplenote(object):
             A tuple `(note, status)`
 
             - note (dict): the newly created note or an error message
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
         # get note
@@ -321,7 +338,7 @@ class Simplenote(object):
             A tuple `(note, status)`
 
             - note (dict): an empty dict or an error message
-            - status (int): 0 on sucesss and -1 otherwise
+            - status (int): 0 on success and -1 otherwise
 
         """
         # notes have to be trashed before deletion
@@ -344,9 +361,13 @@ class Simplenote(object):
         # Compatibility with original Simplenote API v2.1.5
         note[u'key'] = noteid
         note[u'version'] = version
-        note[u'modifydate'] = note["modificationDate"]
-        note[u'createdate'] = note["creationDate"]
-        note[u'systemtags'] = note["systemTags"]
+        try:
+            note[u'modifydate'] = note["modificationDate"]
+            note[u'createdate'] = note["creationDate"]
+            note[u'systemtags'] = note["systemTags"]
+        except KeyError:
+            # For when data=False
+            pass
         return note
 
     def __remove_simplenote_api_fields(self, note):

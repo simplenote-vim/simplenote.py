@@ -73,6 +73,17 @@ class TestSimplenote(unittest.TestCase):
         else:
             self.assertEqual(0, len(res))
 
+    # TODO: I can't think of a good way to test this yet since test period is
+    # relatively quick
+    # def test_simplenote_get_list_with_since(self)
+
+    def test_simplenote_get_list_without_data(self):
+        res, status = self.simplenote_instance.get_note_list(data=False)
+        if status == 0:
+            self.assertEqual(self.initial_note_count, len(res))
+        else:
+            self.assertEqual(0, len(res))
+
     def test_simplenote_first_note(self):
         if self.first_note != False:
             note, status = self.simplenote_instance.get_note(self.first_note)

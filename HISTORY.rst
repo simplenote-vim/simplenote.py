@@ -1,6 +1,12 @@
 History
 ========
 
+2.1.0 (2018-11-04)
+------------------
+
+* Adds since paramter back in (as Simperium cursor, not date)
+* 
+
 2.0.3 (2018-10-19)
 ------------------
 
