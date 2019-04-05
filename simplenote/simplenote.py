@@ -326,7 +326,7 @@ class Simplenote(object):
             # update note
             return self.update_note(note)
         else:
-            return 0, note
+            return note, 0
 
     def delete_note(self, note_id):
         """ Method to permanently delete a note
