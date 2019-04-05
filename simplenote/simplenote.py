@@ -269,8 +269,8 @@ class Simplenote(object):
                 note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                 note_objects.append(note_object)
             notes["index"].extend(note_objects)
-        except IOError:
-            status = -1
+        except IOError as e:
+            return e, -1
 
         # get additional notes if bookmark was set in response
         while "mark" in response_notes:
@@ -291,8 +291,8 @@ class Simplenote(object):
                     note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                     note_objects.append(note_object)
                 notes["index"].extend(note_objects)
-            except IOError:
-                status = -1
+            except IOError as e:
+                return e, -1
         note_list = notes["index"]
         self.current = response_notes["current"]
         # Can only filter for tags at end, once all notes have been retrieved.
