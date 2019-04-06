@@ -129,7 +129,10 @@ class Simplenote(object):
         try:
             response = urllib2.urlopen(request)
         except HTTPError as e:
-            return e, -1
+            if e.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
+            else:
+                return e, -1
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
@@ -181,6 +184,11 @@ class Simplenote(object):
         response = ""
         try:
             response = urllib2.urlopen(request)
+        except HTTPError as e:
+            if e.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
+            else:
+                return e, -1
         except IOError as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
@@ -269,6 +277,11 @@ class Simplenote(object):
                 note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                 note_objects.append(note_object)
             notes["index"].extend(note_objects)
+        except HTTPError as e:
+            if e.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
+            else:
+                return e, -1
         except IOError as e:
             return e, -1
 
@@ -291,6 +304,11 @@ class Simplenote(object):
                     note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
                     note_objects.append(note_object)
                 notes["index"].extend(note_objects)
+            except HTTPError as e:
+                if e.code == 401:
+                    raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
+                else:
+                    return e, -1
             except IOError as e:
                 return e, -1
         note_list = notes["index"]
@@ -354,7 +372,10 @@ class Simplenote(object):
         except IOError as e:
             return e, -1
         except HTTPError as e:
-            return e, -1
+            if e.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
+            else:
+                return e, -1
         return {}, 0
 
     def __add_simplenote_api_fields(self, note, noteid, version):
