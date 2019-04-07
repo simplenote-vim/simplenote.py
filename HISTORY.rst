@@ -1,11 +1,17 @@
 History
 ========
 
+2.1.1 (2019-04-07)
+------------------
+
+* Handle invalid/expired tokens
+* Fixed KeyError in get_note_list() when offline
+* Fix order of note, status for trash_note
+
 2.1.0 (2018-11-04)
 ------------------
 
 * Adds since paramter back in (as Simperium cursor, not date)
-* 
 
 2.0.3 (2018-10-19)
 ------------------
