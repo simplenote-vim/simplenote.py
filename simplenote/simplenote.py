@@ -64,7 +64,7 @@ class Simplenote(object):
         """ Method to get simplenote auth token
 
         Arguments:
-            - user (string):     simplenote email address
+            - User (string):     simplenote email address
             - password (string): simplenote password
 
         Returns:
@@ -157,11 +157,13 @@ class Simplenote(object):
             - status (int): 0 on success and -1 otherwise
 
         """
+        # Let's create a copy to work with so we don't alter original
+        note_to_update = note.copy()
         # determine whether to create a new note or update an existing one
         # Also need to add/remove key field to keep simplenote.py consistency
-        if "key" in note:
+        if "key" in note_to_update:
             # Then already have a noteid we need to remove before passing to Simperium API
-            noteid = note.pop("key", None)
+            noteid = note_to_update.pop("key", None)
         else:
             # Adding a new note
             noteid = uuid.uuid4().hex
@@ -169,15 +171,15 @@ class Simplenote(object):
 
         # TODO: Set a ccid?
         # ccid = uuid.uuid4().hex
-        if "version" in note:
-            version = note.pop("version", None)
+        if "version" in note_to_update:
+            version = note_to_update.pop("version", None)
             url = '%s/i/%s/v/%s?response=1' % (DATA_URL, noteid, version)
         else:
             url = '%s/i/%s?response=1' % (DATA_URL, noteid)
 
         # TODO: Could do with being consistent here. Everywhere else is Request(DATA_URL+params)
-        note = self.__remove_simplenote_api_fields(note)
-        request = Request(url, data=json.dumps(note).encode('utf-8'))
+        note_to_update = self.__remove_simplenote_api_fields(note_to_update)
+        request = Request(url, data=json.dumps(note_to_update).encode('utf-8'))
         request.add_header(self.header, self.get_token())
         request.add_header('Content-Type', 'application/json')
 
@@ -191,9 +193,9 @@ class Simplenote(object):
                 return e, -1
         except IOError as e:
             return e, -1
-        note = json.loads(response.read().decode('utf-8'))
-        note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
-        return note, 0
+        note_to_update = json.loads(response.read().decode('utf-8'))
+        note_to_update = self.__add_simplenote_api_fields(note_to_update, noteid, int(response.info().get("X-Simperium-Version")))
+        return note_to_update, 0
 
     def add_note(self, note):
         """ Wrapper method to add a note
@@ -380,6 +382,9 @@ class Simplenote(object):
 
     def __add_simplenote_api_fields(self, note, noteid, version):
         # Compatibility with original Simplenote API v2.1.5
+
+        # We are not creating a copy of the note to work with as these are only
+        # used internally and so doesn't matter if we alter "original"
         note[u'key'] = noteid
         note[u'version'] = version
         try:
@@ -392,6 +397,9 @@ class Simplenote(object):
         return note
 
     def __remove_simplenote_api_fields(self, note):
+        # We are not creating a copy of the note to work with as these are only
+        # used internally and so doesn't matter if we alter "original"
+
         # These two should have already removed by this point since they are
         # needed for updating, etc, but _just_ incase...
         note.pop("key", None)

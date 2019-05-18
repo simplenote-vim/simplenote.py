@@ -187,6 +187,13 @@ class TestSimplenote(unittest.TestCase):
                     if status == 0:
                         self.assertEqual("Hello", note["content"])
 
+    def test_external_note_object_does_not_get_altered(self):
+        external_note = {'modifydate': 2.0, 'createdate': 1.0, 'tags': [], 'content': 'note'}
+        reference_note = {'modifydate': 2.0, 'createdate': 1.0, 'tags': [], 'content': 'note'}
+        note, status = self.simplenote_instance.add_note(external_note)
+        if status == 0:
+            self.assertEqual(external_note, reference_note)
+
     def is_utf8(self, s):
         if sys.version_info < (3, 0):
             try:
