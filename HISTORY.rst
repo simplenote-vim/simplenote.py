@@ -1,6 +1,11 @@
 History
 ========
 
+2.1.3 (2019-06-01)
+------------------
+
+* Fix issue where update_note was actually modifying the external note object passed to it rather than creating a copy and returning that.
+
 2.1.2 (2019-04-07)
 ------------------
 
