@@ -15,11 +15,13 @@ if sys.version_info > (3, 0):
     from urllib.error import HTTPError
     import urllib.parse as urllib
     import html
+    from http.client import BadStatusLine
 else:
     import urllib2
     from urllib2 import HTTPError
     import urllib
     from HTMLParser import HTMLParser
+    from httplib import BadStatusLine
 
 import base64
 import time
@@ -81,7 +83,7 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = json.loads(res.decode('utf-8'))["access_token"]
-        except HTTPError:
+        except (HTTPError, BadStatusLine):
             raise SimplenoteLoginFailed('Login to Simplenote API failed!')
         except IOError: # no connection exception
             token = None
@@ -133,7 +135,7 @@ class Simplenote(object):
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
             else:
                 return e, -1
-        except IOError as e:
+        except (IOError, BadStatusLine) as e:
             return e, -1
         note = json.loads(response.read().decode('utf-8'))
         note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
@@ -191,7 +193,7 @@ class Simplenote(object):
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
             else:
                 return e, -1
-        except IOError as e:
+        except (IOError, BadStatusLine) as e:
             return e, -1
         note_to_update = json.loads(response.read().decode('utf-8'))
         note_to_update = self.__add_simplenote_api_fields(note_to_update, noteid, int(response.info().get("X-Simperium-Version")))
@@ -284,7 +286,7 @@ class Simplenote(object):
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
             else:
                 return e, -1
-        except IOError as e:
+        except (IOError, BadStatusLine) as e:
             return e, -1
 
         # get additional notes if bookmark was set in response
@@ -311,7 +313,7 @@ class Simplenote(object):
                     raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
                 else:
                     return e, -1
-            except IOError as e:
+            except (IOError, BadStatusLine) as e:
                 return e, -1
         note_list = notes["index"]
         self.current = response_notes["current"]
@@ -371,7 +373,7 @@ class Simplenote(object):
         request.add_header(self.header, self.get_token())
         try:
             response = urllib2.urlopen(request)
-        except IOError as e:
+        except (IOError, BadStatusLine) as e:
             return e, -1
         except HTTPError as e:
             if e.code == 401:
