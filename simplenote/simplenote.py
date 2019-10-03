@@ -11,21 +11,15 @@
 import sys
 if sys.version_info > (3, 0):
     import urllib.request as urllib2
-    import urllib.error
     from urllib.error import HTTPError
-    import urllib.parse as urllib
-    import html
-    from http.client import BadStatusLine
+    from http.client import HTTPException, BadStatusLine
 else:
     import urllib2
     from urllib2 import HTTPError
-    import urllib
-    from HTMLParser import HTMLParser
-    from httplib import BadStatusLine
+    from httplib import HTTPException, BadStatusLine
 
 import base64
 import time
-import datetime
 import uuid
 
 try:
@@ -71,7 +65,12 @@ class Simplenote(object):
 
         Returns:
             Simplenote API token as string
-            
+
+        Raises:
+            - SimplenoteLoginFailed
+            - HTTPError
+            - HTTPException
+            - IOError
         """
 
         request = Request(AUTH_URL)
@@ -83,10 +82,10 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = json.loads(res.decode('utf-8'))["access_token"]
-        except (HTTPError, BadStatusLine):
-            raise SimplenoteLoginFailed('Login to Simplenote API failed!')
-        except IOError: # no connection exception
-            token = None
+        except HTTPError as e:
+            if e.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check email address and password.')
+            raise
         return token
 
     def get_token(self):
@@ -98,6 +97,10 @@ class Simplenote(object):
         Returns:
             Simplenote API token as string
 
+        Raises:
+            - HTTPError
+            - HTTPException
+            - IOError
         """
         if self.token == None:
             self.token = self.authenticate(self.username, self.password)
@@ -125,9 +128,13 @@ class Simplenote(object):
         if version is not None:
             params_version = '/v/' + str(version)
 
+        try:
+            token = self.get_token()
+        except Exception as e:
+            return e, -1
         params = '/i/%s%s' % (str(noteid), params_version)
         request = Request(DATA_URL+params)
-        request.add_header(self.header, self.get_token())
+        request.add_header(self.header, token)
         try:
             response = urllib2.urlopen(request)
         except HTTPError as e:
@@ -179,10 +186,14 @@ class Simplenote(object):
         else:
             url = '%s/i/%s?response=1' % (DATA_URL, noteid)
 
+        try:
+            token = self.get_token()
+        except Exception as e:
+            return e, -1
         # TODO: Could do with being consistent here. Everywhere else is Request(DATA_URL+params)
         note_to_update = self.__remove_simplenote_api_fields(note_to_update)
         request = Request(url, data=json.dumps(note_to_update).encode('utf-8'))
-        request.add_header(self.header, self.get_token())
+        request.add_header(self.header, token)
         request.add_header('Content-Type', 'application/json')
 
         response = ""
@@ -267,8 +278,12 @@ class Simplenote(object):
             params += '&data=true'
 
         # perform initial HTTP request
+        try:
+            token = self.get_token()
+        except Exception as e:
+            return e, -1
         request = Request(DATA_URL+params)
-        request.add_header(self.header, self.get_token())
+        request.add_header(self.header, token)
         try:
             response = urllib2.urlopen(request)
             response_notes = json.loads(response.read().decode('utf-8'))
@@ -295,7 +310,7 @@ class Simplenote(object):
 
             # perform the actual HTTP request
             request = Request(DATA_URL+params)
-            request.add_header(self.header, self.get_token())
+            request.add_header(self.header, token)
             try:
                 response = urllib2.urlopen(request)
                 response_notes = json.loads(response.read().decode('utf-8'))
@@ -368,9 +383,13 @@ class Simplenote(object):
         if (status == -1):
             return note, status
 
+        try:
+            token = self.get_token()
+        except Exception as e:
+            return e, -1
         params = '/i/%s' % (str(note_id))
         request = Request(url=DATA_URL+params, method='DELETE')
-        request.add_header(self.header, self.get_token())
+        request.add_header(self.header, token)
         try:
             response = urllib2.urlopen(request)
         except (IOError, BadStatusLine) as e:

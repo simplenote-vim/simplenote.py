@@ -45,9 +45,17 @@ class TestSimplenote(unittest.TestCase):
         token = self.simplenote_instance.get_token()
         self.assertNotEqual(None, token)
 
-    def test_simplenote_failed_auth(self):
-        s = simplenote.Simplenote(self.user, "")
+    def test_simplenote_failed_auth_with_incorrect_password(self):
+        s = simplenote.Simplenote(self.user, "incorrect-password")
         self.assertRaises(simplenote.SimplenoteLoginFailed, s.get_token)
+
+    def test_simplenote_failed_auth_with_empty_password(self):
+        s = simplenote.Simplenote(self.user, "")
+        self.assertRaises(Exception, s.get_token)
+
+    def test_simplenote_failed_auth_with_empty_email_address(self):
+        s = simplenote.Simplenote("", "foo")
+        self.assertRaises(Exception, s.get_token)
 
     def test_simplenote_get_list_length(self):
         res, status = self.simplenote_instance.get_note_list()
