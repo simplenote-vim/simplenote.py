@@ -9,24 +9,18 @@
     :license: MIT, see LICENSE for more details.
 """
 import sys
+import base64
+import time
+import uuid
 if sys.version_info > (3, 0):
     import urllib.request as urllib2
     import urllib.error
     from urllib.error import HTTPError
-    import urllib.parse as urllib
-    import html
     from http.client import BadStatusLine
 else:
     import urllib2
     from urllib2 import HTTPError
-    import urllib
-    from HTMLParser import HTMLParser
     from httplib import BadStatusLine
-
-import base64
-import time
-import datetime
-import uuid
 
 try:
     import json
@@ -37,17 +31,18 @@ except ImportError:
         # For Google AppEngine
         from django.utils import simplejson as json
 
-APP_ID   = 'chalk-bump-f49'
+APP_ID = 'chalk-bump-f49'
 # There is no way for us to hide this key, only obfuscate it.
 # So please be kind and don't (ab)use it.
 # Simplenote/Simperium didn't have to provide us with this.
-API_KEY  = base64.b64decode('YzhjMmI4NjMzNzE1NGNkYWJjOTg5YjIzZTMwYzZiZjQ=')
-BUCKET   = 'note'
+API_KEY = base64.b64decode('YzhjMmI4NjMzNzE1NGNkYWJjOTg5YjIzZTMwYzZiZjQ=')
+BUCKET = 'note'
 AUTH_URL = 'https://auth.simperium.com/1/%s/authorize/' % (APP_ID)
 DATA_URL = 'https://api.simperium.com/1/%s/%s' % (APP_ID, BUCKET)
 NOTE_FETCH_LENGTH = 1000
 
 class SimplenoteLoginFailed(Exception):
+    """ Class for reporting login failures """
     pass
 
 
@@ -71,7 +66,6 @@ class Simplenote(object):
 
         Returns:
             Simplenote API token as string
-            
         """
 
         request = Request(AUTH_URL)
@@ -99,10 +93,10 @@ class Simplenote(object):
             Simplenote API token as string
 
         """
-        if self.token == None:
+        if self.token is None:
             self.token = self.authenticate(self.username, self.password)
         try:
-            return str(self.token,'utf-8')
+            return str(self.token, 'utf-8')
         except TypeError:
             return self.token
 
@@ -130,15 +124,15 @@ class Simplenote(object):
         request.add_header(self.header, self.get_token())
         try:
             response = urllib2.urlopen(request)
-        except HTTPError as e:
-            if e.code == 401:
+        except HTTPError as error:
+            if error.code == 401:
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
-            else:
-                return e, -1
-        except (IOError, BadStatusLine) as e:
-            return e, -1
+            return error, -1
+        except (IOError, BadStatusLine) as error:
+            return error, -1
         note = json.loads(response.read().decode('utf-8'))
-        note = self.__add_simplenote_api_fields(note, noteid, int(response.info().get("X-Simperium-Version")))
+        note = self.__add_simplenote_api_fields(note, noteid,
+                                                int(response.info().get("X-Simperium-Version")))
         # Sort tags
         # For early versions of notes, tags not always available
         if "tags" in note:
@@ -188,15 +182,15 @@ class Simplenote(object):
         response = ""
         try:
             response = urllib2.urlopen(request)
-        except HTTPError as e:
-            if e.code == 401:
+        except HTTPError as error:
+            if error.code == 401:
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
-            else:
-                return e, -1
-        except (IOError, BadStatusLine) as e:
-            return e, -1
+            return error, -1
+        except (IOError, BadStatusLine) as error:
+            return error, -1
         note_to_update = json.loads(response.read().decode('utf-8'))
-        note_to_update = self.__add_simplenote_api_fields(note_to_update, noteid, int(response.info().get("X-Simperium-Version")))
+        note_to_update = self.__add_simplenote_api_fields(
+            note_to_update, noteid, int(response.info().get("X-Simperium-Version")))
         return note_to_update, 0
 
     def add_note(self, note):
@@ -220,10 +214,9 @@ class Simplenote(object):
 
         if type(note) == str:
             return self.update_note({"content": note})
-        elif (type(note) == dict) and "content" in note:
+        if (type(note) == dict) and "content" in note:
             return self.update_note(note)
-        else:
-            return "No string or valid note.", -1
+        return "No string or valid note.", -1
 
     def get_note_list(self, data=True, since=None, tags=[]):
         """ Method to get the note list
@@ -253,9 +246,8 @@ class Simplenote(object):
         """
         # initialize data
         status = 0
-        ret = []
         response_notes = {}
-        notes = { "index" : [] }
+        notes = {"index" : []}
 
         # get the note index
         params = '/index?limit=%s' % (str(NOTE_FETCH_LENGTH))
@@ -274,20 +266,20 @@ class Simplenote(object):
             response_notes = json.loads(response.read().decode('utf-8'))
             # re-write for v1 consistency
             note_objects = []
-            for n in response_notes["index"]:
-                # If data=False then can't do this bit... or not all of it, just have id and version. Add empty data object.
+            for nitem in response_notes["index"]:
+                # If data=False then can't do this bit... or not all of it,
+                # just have id and version. Add empty data object.
                 if not data:
-                    n['d'] = {}
-                note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
+                    nitem['d'] = {}
+                note_object = self.__add_simplenote_api_fields(nitem['d'], nitem['id'], nitem['v'])
                 note_objects.append(note_object)
             notes["index"].extend(note_objects)
-        except HTTPError as e:
-            if e.code == 401:
+        except HTTPError as error:
+            if error.code == 401:
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
-            else:
-                return e, -1
-        except (IOError, BadStatusLine) as e:
-            return e, -1
+            return error, -1
+        except (IOError, BadStatusLine) as error:
+            return error, -1
 
         # get additional notes if bookmark was set in response
         while "mark" in response_notes:
@@ -301,25 +293,25 @@ class Simplenote(object):
                 response_notes = json.loads(response.read().decode('utf-8'))
                 # re-write for v1 consistency
                 note_objects = []
-                for n in response_notes["index"]:
+                for nitem in response_notes["index"]:
                     if not data:
-                        n['d'] = {}
-                    note_object = n['d']
-                    note_object = self.__add_simplenote_api_fields(n['d'], n['id'], n['v'])
+                        nitem['d'] = {}
+                    note_object = nitem['d']
+                    note_object = self.__add_simplenote_api_fields(
+                        nitem['d'], nitem['id'], nitem['v'])
                     note_objects.append(note_object)
                 notes["index"].extend(note_objects)
-            except HTTPError as e:
-                if e.code == 401:
+            except HTTPError as error:
+                if error.code == 401:
                     raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
-                else:
-                    return e, -1
-            except (IOError, BadStatusLine) as e:
-                return e, -1
+                return error, -1
+            except (IOError, BadStatusLine) as error:
+                return error, -1
         note_list = notes["index"]
         self.current = response_notes["current"]
         # Can only filter for tags at end, once all notes have been retrieved.
-        if (len(tags) > 0):
-            note_list = [n for n in note_list if (len(set(n["tags"]).intersection(tags)) > 0)]
+        if tags:
+            note_list = [n for n in note_list if set(n["tags"]).intersection(tags)]
         return note_list, status
 
     def trash_note(self, note_id):
@@ -337,7 +329,7 @@ class Simplenote(object):
         """
         # get note
         note, status = self.get_note(note_id)
-        if (status == -1):
+        if status == -1:
             return note, status
         # set deleted property, but only if not already trashed
         # TODO: A 412 is ok, that's unmodified. Should handle this in update_note and
@@ -347,8 +339,7 @@ class Simplenote(object):
             note["modificationDate"] = time.time()
             # update note
             return self.update_note(note)
-        else:
-            return note, 0
+        return note, 0
 
     def delete_note(self, note_id):
         """ Method to permanently delete a note
@@ -365,21 +356,20 @@ class Simplenote(object):
         """
         # notes have to be trashed before deletion
         note, status = self.trash_note(note_id)
-        if (status == -1):
+        if status == -1:
             return note, status
 
         params = '/i/%s' % (str(note_id))
         request = Request(url=DATA_URL+params, method='DELETE')
         request.add_header(self.header, self.get_token())
         try:
-            response = urllib2.urlopen(request)
-        except (IOError, BadStatusLine) as e:
-            return e, -1
-        except HTTPError as e:
-            if e.code == 401:
+            urllib2.urlopen(request)
+        except HTTPError as error:
+            if error.code == 401:
                 raise SimplenoteLoginFailed('Login to Simplenote API failed! Check Token.')
-            else:
-                return e, -1
+            return error, -1
+        except (IOError, BadStatusLine) as error:
+            return error, -1
         return {}, 0
 
     def __add_simplenote_api_fields(self, note, noteid, version):
@@ -409,18 +399,18 @@ class Simplenote(object):
         # Let's only set these ones if they exist. We don't want None so we can
         # still set defaults afterwards
         mappings = {
-                "modifydate": "modificationDate",
-                "createdate": "creationDate",
-                "systemtags": "systemTags"
+            "modifydate": "modificationDate",
+            "createdate": "creationDate",
+            "systemtags": "systemTags"
         }
         if sys.version_info < (3, 0):
-            for k,v in mappings.iteritems():
-                if k in note:
-                    note[v] = note.pop(k)
+            for nkey, nvalue in mappings.iteritems():
+                if nkey in note:
+                    note[nvalue] = note.pop(nkey)
         else:
-            for k,v in mappings.items():
-                if k in note:
-                    note[v] = note.pop(k)
+            for nkey, nvalue in mappings.items():
+                if nkey in note:
+                    note[nvalue] = note.pop(nkey)
         # Need to add missing dict stuff if missing, might as well do by
         # default, not just for note objects only containing content
         createDate = time.time()
@@ -434,11 +424,11 @@ class Simplenote(object):
             "publishURL" : "",
         }
         if sys.version_info < (3, 0):
-            for k,v in note_dict.iteritems():
-                note.setdefault(k, v)
+            for nkey, nvalue in note_dict.iteritems():
+                note.setdefault(nkey, nvalue)
         else:
-            for k,v in note_dict.items():
-                note.setdefault(k, v)
+            for nkey, nvalue in note_dict.items():
+                note.setdefault(nkey, nvalue)
         return note
 
 class Request(urllib2.Request):
@@ -448,7 +438,7 @@ class Request(urllib2.Request):
 
     if sys.version_info < (3, 0):
         def __init__(self, url, data=None, headers={}, origin_req_host=None,
-                    unverifiable=False, method=None):
+                     unverifiable=False, method=None):
             urllib2.Request.__init__(self, url, data, headers, origin_req_host, unverifiable)
             self.method = method
 
