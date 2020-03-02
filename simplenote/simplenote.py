@@ -77,10 +77,17 @@ class Simplenote(object):
         try:
             res = urllib2.urlopen(request).read()
             token = json.loads(res.decode('utf-8'))["access_token"]
-        except (HTTPError, BadStatusLine):
+        except HTTPError as error:
+            if error.code == 401:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed! Check email address and password.')
+            else:
+                raise SimplenoteLoginFailed('Login to Simplenote API failed!')
+        except BadStatusLine:
             raise SimplenoteLoginFailed('Login to Simplenote API failed!')
         except IOError: # no connection exception
-            token = None
+            raise SimplenoteLoginFailed('We appear to be offline')
+            # Don't want to return "None" since that's potentially confusing so fail hard
+            raise
         return token
 
     def get_token(self):
