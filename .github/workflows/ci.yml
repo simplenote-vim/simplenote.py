@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, qwen-github-actions ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, qwen-github-actions ]
   release:
     types: [ published ]
 
