@@ -6,8 +6,8 @@ simplenote.py
   :target: http://simplenotepy.readthedocs.io/en/latest/?badge=latest
   :alt: Documentation Status
 
-.. image:: https://travis-ci.org/mrtazz/simplenote.py.svg?branch=master
-    :target: https://travis-ci.org/mrtazz/simplenote.py
+.. image:: https://github.com/mrtazz/simplenote.py/workflows/CI/badge.svg?branch=master
+    :target: https://github.com/mrtazz/simplenote.py/actions?query=branch%3Amaster
 
 .. image:: https://codeclimate.com/github/mrtazz/simplenote.py/badges/gpa.svg
    :target: https://codeclimate.com/github/mrtazz/simplenote.py
